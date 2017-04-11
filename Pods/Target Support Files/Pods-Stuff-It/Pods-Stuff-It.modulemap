@@ -1,0 +1,6 @@
+framework module Pods_Stuff_It {
+  umbrella header "Pods-Stuff-It-umbrella.h"
+
+  export *
+  module * { export * }
+}
