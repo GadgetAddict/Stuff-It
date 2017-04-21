@@ -160,7 +160,7 @@ class qrScannerVC: UIViewController, AVCaptureMetadataOutputObjectsDelegate, Seg
             if metadataObj.stringValue != nil {
                 let qrString = metadataObj.stringValue
                 
-                print("STRING VALUE \(qrString)")
+                print("STRING VALUE \(String(describing: qrString))")
                 messageLabel.text = qrString
                 captureSession?.stopRunning()
                 self.qrData = qrString!

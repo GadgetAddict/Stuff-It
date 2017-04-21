@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		6E277E0D68A248D0AEB7CBED /* Pods_Stuff_It.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BE9386597BBFD8D75A259919 /* Pods_Stuff_It.framework */; };
+		AD379F0E1EA80B2F00ECA0AC /* loadDataFireBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD379F0D1EA80B2F00ECA0AC /* loadDataFireBase.swift */; };
 		AD60BFF11E9D28AB005A68B8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AD60BFF01E9D28AB005A68B8 /* Assets.xcassets */; };
 		AD60BFF41E9D28AB005A68B8 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AD60BFF21E9D28AB005A68B8 /* LaunchScreen.storyboard */; };
 		AD60C00A1E9D2AD1005A68B8 /* Box.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD60C0031E9D2AD1005A68B8 /* Box.swift */; };
@@ -71,10 +72,15 @@
 		AD60C0901E9D2B5C005A68B8 /* Locations.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AD60C08B1E9D2B5C005A68B8 /* Locations.storyboard */; };
 		AD60C0911E9D2B5C005A68B8 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AD60C08C1E9D2B5C005A68B8 /* Main.storyboard */; };
 		AD60C0921E9D2B5C005A68B8 /* Status.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AD60C08D1E9D2B5C005A68B8 /* Status.storyboard */; };
+		AD60C09B1E9FF5CF005A68B8 /* PlayingFireBaseTableVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD60C09A1E9FF5CF005A68B8 /* PlayingFireBaseTableVC.swift */; };
+		AD60C09D1E9FF712005A68B8 /* PlaygroundTableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD60C09C1E9FF712005A68B8 /* PlaygroundTableCell.swift */; };
+		AD94A7F61EA121A400FEE5C7 /* COOL_SYNTAX.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD94A7F51EA121A400FEE5C7 /* COOL_SYNTAX.swift */; };
+		ADC8886D1EAA90A100205D57 /* ItemImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADC8886C1EAA90A100205D57 /* ItemImageView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		26DD275E742BCE499C8CEDD6 /* Pods-Stuff-It.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Stuff-It.release.xcconfig"; path = "Pods/Target Support Files/Pods-Stuff-It/Pods-Stuff-It.release.xcconfig"; sourceTree = "<group>"; };
+		AD379F0D1EA80B2F00ECA0AC /* loadDataFireBase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = loadDataFireBase.swift; sourceTree = "<group>"; };
 		AD60BFE61E9D28AB005A68B8 /* Stuff-It.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Stuff-It.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AD60BFF01E9D28AB005A68B8 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AD60BFF31E9D28AB005A68B8 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -95,7 +101,7 @@
 		AD60C01C1E9D2B0A005A68B8 /* BoxItemCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BoxItemCell.swift; sourceTree = "<group>"; };
 		AD60C01D1E9D2B0A005A68B8 /* CategoriesCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CategoriesCell.swift; sourceTree = "<group>"; };
 		AD60C01E1E9D2B0A005A68B8 /* CategoryPickerCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CategoryPickerCell.swift; sourceTree = "<group>"; };
-		AD60C01F1E9D2B0A005A68B8 /* ColorCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorCell.swift; sourceTree = "<group>"; };
+		AD60C01F1E9D2B0A005A68B8 /* ColorCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ColorCell.swift; path = "../../../Table View Cells/ColorCell.swift"; sourceTree = "<group>"; };
 		AD60C0201E9D2B0A005A68B8 /* ItemCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ItemCell.swift; sourceTree = "<group>"; };
 		AD60C0211E9D2B0A005A68B8 /* itemSelectCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = itemSelectCell.swift; sourceTree = "<group>"; };
 		AD60C0221E9D2B0A005A68B8 /* LocationPickerCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocationPickerCell.swift; sourceTree = "<group>"; };
@@ -140,6 +146,10 @@
 		AD60C08B1E9D2B5C005A68B8 /* Locations.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Locations.storyboard; sourceTree = "<group>"; };
 		AD60C08C1E9D2B5C005A68B8 /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
 		AD60C08D1E9D2B5C005A68B8 /* Status.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Status.storyboard; sourceTree = "<group>"; };
+		AD60C09A1E9FF5CF005A68B8 /* PlayingFireBaseTableVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayingFireBaseTableVC.swift; sourceTree = "<group>"; };
+		AD60C09C1E9FF712005A68B8 /* PlaygroundTableCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaygroundTableCell.swift; sourceTree = "<group>"; };
+		AD94A7F51EA121A400FEE5C7 /* COOL_SYNTAX.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = COOL_SYNTAX.swift; sourceTree = "<group>"; };
+		ADC8886C1EAA90A100205D57 /* ItemImageView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ItemImageView.swift; sourceTree = "<group>"; };
 		BE9386597BBFD8D75A259919 /* Pods_Stuff_It.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Stuff_It.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		FB85C3D5F2103B187FEE8310 /* Pods-Stuff-It.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Stuff-It.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Stuff-It/Pods-Stuff-It.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -185,6 +195,7 @@
 		AD60BFE81E9D28AB005A68B8 /* Stuff-It */ = {
 			isa = PBXGroup;
 			children = (
+				AD94A7F51EA121A400FEE5C7 /* COOL_SYNTAX.swift */,
 				AD60BFFC1E9D297F005A68B8 /* Models */,
 				AD60BFFD1E9D2982005A68B8 /* Protocols */,
 				AD60BFFE1E9D2985005A68B8 /* Services */,
@@ -211,6 +222,7 @@
 				AD60C0371E9D2B15005A68B8 /* SmallText.swift */,
 				AD60C0381E9D2B15005A68B8 /* Styled_Picker.swift */,
 				AD60C0391E9D2B15005A68B8 /* Styled_View.swift */,
+				ADC8886C1EAA90A100205D57 /* ItemImageView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -241,6 +253,7 @@
 			isa = PBXGroup;
 			children = (
 				AD60C0131E9D2AEF005A68B8 /* DataService.swift */,
+				AD379F0D1EA80B2F00ECA0AC /* loadDataFireBase.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -274,12 +287,12 @@
 				AD60C01C1E9D2B0A005A68B8 /* BoxItemCell.swift */,
 				AD60C01D1E9D2B0A005A68B8 /* CategoriesCell.swift */,
 				AD60C01E1E9D2B0A005A68B8 /* CategoryPickerCell.swift */,
-				AD60C01F1E9D2B0A005A68B8 /* ColorCell.swift */,
 				AD60C0201E9D2B0A005A68B8 /* ItemCell.swift */,
 				AD60C0211E9D2B0A005A68B8 /* itemSelectCell.swift */,
 				AD60C0221E9D2B0A005A68B8 /* LocationPickerCell.swift */,
 				AD60C0231E9D2B0A005A68B8 /* LocationsCell.swift */,
 				AD60C0241E9D2B0A005A68B8 /* StatusCell.swift */,
+				AD60C09C1E9FF712005A68B8 /* PlaygroundTableCell.swift */,
 			);
 			path = "Table View Cells";
 			sourceTree = "<group>";
@@ -296,6 +309,7 @@
 				AD60C05C1E9D2B44005A68B8 /* ItemFeedVC */,
 				AD60C0601E9D2B44005A68B8 /* Login_SignUpVC */,
 				AD60C0671E9D2B44005A68B8 /* PlayingAroundViewController.swift */,
+				AD60C09A1E9FF5CF005A68B8 /* PlayingFireBaseTableVC.swift */,
 				AD60C0681E9D2B44005A68B8 /* QRCode */,
 				AD60C06B1E9D2B44005A68B8 /* SettingsVC */,
 				AD60C06D1E9D2B44005A68B8 /* WalkThrough */,
@@ -360,6 +374,7 @@
 			isa = PBXGroup;
 			children = (
 				AD60C04E1E9D2B44005A68B8 /* CategoriesVC.swift */,
+				AD60C01F1E9D2B0A005A68B8 /* ColorCell.swift */,
 				AD60C04F1E9D2B44005A68B8 /* CategoryDetailsVC.swift */,
 				AD60C0501E9D2B44005A68B8 /* CategoryPicker.swift */,
 			);
@@ -634,6 +649,8 @@
 				AD60C0271E9D2B0A005A68B8 /* CategoriesCell.swift in Sources */,
 				AD60C0801E9D2B44005A68B8 /* LoginViewController.swift in Sources */,
 				AD60C02D1E9D2B0A005A68B8 /* LocationsCell.swift in Sources */,
+				AD60C09D1E9FF712005A68B8 /* PlaygroundTableCell.swift in Sources */,
+				AD379F0E1EA80B2F00ECA0AC /* loadDataFireBase.swift in Sources */,
 				AD60C0421E9D2B15005A68B8 /* Styled_Picker.swift in Sources */,
 				AD60C07A1E9D2B44005A68B8 /* LocationsVC.swift in Sources */,
 				AD60C0841E9D2B44005A68B8 /* QrCollectionVC.swift in Sources */,
@@ -642,6 +659,7 @@
 				AD60C00F1E9D2AD1005A68B8 /* Status.swift in Sources */,
 				AD60C0251E9D2B0A005A68B8 /* BoxCell.swift in Sources */,
 				AD60C0721E9D2B44005A68B8 /* BoxFeedVC.swift in Sources */,
+				ADC8886D1EAA90A100205D57 /* ItemImageView.swift in Sources */,
 				AD60C0831E9D2B44005A68B8 /* PlayingAroundViewController.swift in Sources */,
 				AD60C0401E9D2B15005A68B8 /* SevenSwitch.swift in Sources */,
 				AD60C02C1E9D2B0A005A68B8 /* LocationPickerCell.swift in Sources */,
@@ -653,8 +671,10 @@
 				AD60C0141E9D2AEF005A68B8 /* DataService.swift in Sources */,
 				AD60C0191E9D2AFE005A68B8 /* Constants.swift in Sources */,
 				AD60C0791E9D2B44005A68B8 /* LocationPickerVC.swift in Sources */,
+				AD60C09B1E9FF5CF005A68B8 /* PlayingFireBaseTableVC.swift in Sources */,
 				AD60C0291E9D2B0A005A68B8 /* ColorCell.swift in Sources */,
 				AD60C0741E9D2B44005A68B8 /* CategoriesVC.swift in Sources */,
+				AD94A7F61EA121A400FEE5C7 /* COOL_SYNTAX.swift in Sources */,
 				AD60C0711E9D2B44005A68B8 /* BoxDetails.swift in Sources */,
 				AD60C0701E9D2B44005A68B8 /* AddItemsToBoxVC.swift in Sources */,
 				AD60C0281E9D2B0A005A68B8 /* CategoryPickerCell.swift in Sources */,

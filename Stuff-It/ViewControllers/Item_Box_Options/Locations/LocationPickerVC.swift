@@ -234,7 +234,7 @@ func editButtonPressed(){
     
         let deleteAction = UITableViewRowAction(style: UITableViewRowActionStyle.default, title: "\u{1F5d1}\n Delete", handler: { (action: UITableViewRowAction, indexPath: IndexPath) -> Void in
     
-            let alert = UIAlertController(title: "Wait!", message: "Are you sure you want to permanently delete: \(locationName)?", preferredStyle: .actionSheet)
+            let alert = UIAlertController(title: "Wait!", message: "Are you sure you want to permanently delete: \(locationName ?? "this Location")?", preferredStyle: .actionSheet)
     
             let DeleteAction = UIAlertAction(title: "Delete", style: .destructive, handler: self.handleDeleteItem)
             let CancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: self.cancelDeleteItem)

@@ -58,12 +58,12 @@ class AddItemsToBoxVC: UITableViewController {
         }   // End ViewDidLoad
         
     func saveToFirebase(item: String, key: String) {
-        self.REF_BOX = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes/\(self.box.boxKey!)/items/itemBoxNum\(key)")
+        self.REF_BOX = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes/\(self.box.boxKey)/items/\(key)")
         
         self.REF_ITEMS = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/items/\(key)/")
         
         let boxNumDict: Dictionary<String, String> =
-            ["itemBoxNum" : self.box.boxKey! ]
+            ["itemBoxNum" : self.box.boxKey ]
         
         let itemDict: Dictionary<String, String> =
             ["itemName" : item ]

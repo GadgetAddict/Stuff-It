@@ -70,7 +70,7 @@ class PlayingAroundViewController: UIViewController {
             let alert = SCLAlertView(appearance: appearance)
             let txt = alert.addTextField("Enter your name")
             _ = alert.addButton("Show Name") {
-                print("Text value: \(txt.text)")
+                print("Text value: \(String(describing: txt.text))")
             }
             _ = alert.showEdit(kInfoTitle, subTitle:kSubtitle)
         }

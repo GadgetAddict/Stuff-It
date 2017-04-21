@@ -18,7 +18,7 @@ class BoxItemsVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDataSetD
     
         var items = [Item]()
         var box: Box!
-//        var selectedItems = [Item]()
+        var selectedItem: Item!
         var boxItemIndexPath: NSIndexPath? = nil
 //        var collectionID: String!
         var REF_BOX_ITEMS: FIRDatabaseReference!
@@ -65,7 +65,7 @@ class BoxItemsVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDataSetD
 
             UIApplication.shared.isNetworkActivityIndicatorVisible = true
             
-            self.REF_BOX_ITEMS = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes/\(self.box.boxKey!)/items")
+            self.REF_BOX_ITEMS = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes/\(self.box.boxKey)/items")
 //                  print("REFERENCE: \(myRef)")
        
             //         REF_STATUS.queryOrdered(byChild: "statusName").observe(.value, with: { snapshot in
@@ -95,11 +95,6 @@ class BoxItemsVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDataSetD
  
     //MARK: - UITableViewDataSource
     
-
-//        override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-//            return items.count
-//        }
-//    
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
                 tableView.backgroundView = nil
         
@@ -134,6 +129,49 @@ class BoxItemsVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDataSetD
                         return BoxItemCell()
                     }
                 }
+   
+    
+    
+    
+    
+    override func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
+        
+        boxItemIndexPath = indexPath as NSIndexPath?
+        let boxItemToModify  = items[indexPath.row]
+        let itemName = boxItemToModify.itemName
+        //                    let itemKey = itemToModify.itemKey
+        
+        
+        let deleteAction = UITableViewRowAction(style: UITableViewRowActionStyle.default, title: "Remove", handler: { (action: UITableViewRowAction, indexPath: IndexPath) -> Void in
+            
+            let alert = UIAlertController(title: "Wait!", message: "Are you sure you want to remove \(itemName) from this box?", preferredStyle: .actionSheet)
+            
+            let DeleteAction = UIAlertAction(title: "Delete", style: .destructive, handler: self.handleDeleteItem)
+            let CancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: self.cancelDeleteItem)
+            
+            alert.addAction(DeleteAction)
+            alert.addAction(CancelAction)
+            
+            
+            self.present(alert, animated: true, completion: nil)
+            
+        })
+        
+        deleteAction.backgroundColor = UIColor.red
+        
+        
+        return [deleteAction ]
+        
+    }
+    
+    override  func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath){
+        print("boxItems: didSelectRowAt ->Call segue")
+        self.selectedItem = items[indexPath.row]
+        
+        self.performSegue(withIdentifier: "itemDetails_SEGUE" , sender: self)
+    }
+   
+    
     
     
     func image(forEmptyDataSet scrollView: UIScrollView!) -> UIImage! {
@@ -185,37 +223,6 @@ class BoxItemsVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDataSetD
 
     
     
-    
-    override func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
-        
-        boxItemIndexPath = indexPath as NSIndexPath?
-        let boxItemToModify  = items[indexPath.row]
-        let itemName = boxItemToModify.itemName
-        //                    let itemKey = itemToModify.itemKey
-        
-        
-        let deleteAction = UITableViewRowAction(style: UITableViewRowActionStyle.default, title: "Remove", handler: { (action: UITableViewRowAction, indexPath: IndexPath) -> Void in
-            
-            let alert = UIAlertController(title: "Wait!", message: "Are you sure you want to remove \(itemName) from this box?", preferredStyle: .actionSheet)
-            
-            let DeleteAction = UIAlertAction(title: "Delete", style: .destructive, handler: self.handleDeleteItem)
-            let CancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: self.cancelDeleteItem)
-            
-            alert.addAction(DeleteAction)
-            alert.addAction(CancelAction)
-            
-            
-            self.present(alert, animated: true, completion: nil)
-            
-        })
-        
-        deleteAction.backgroundColor = UIColor.red
-        
-
-        return [deleteAction ]
-        
-    }
-    
     func handleDeleteItem(alertAction: UIAlertAction!) -> Void {
         print("IN THE DELETE FUNCTION")
         
@@ -266,32 +273,41 @@ class BoxItemsVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDataSetD
         override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
             print("BoxItems: prepareForSegue ")
             
+            if segue.identifier == "addToBox" {
+                print("Box to addToBox ")
+              
+                    
             if let addItemsVC = segue.destination as? AddItemsToBoxVC {
                 addItemsVC.box = self.box
-            }
-
+                }
                 
-//            if let cell = sender as? UITableViewCell {
-//                let indexPath = tableView.indexPath(for: cell)
-//                let itemToPass = items[indexPath!.row]
-//               
+            } else {
+            
+                if let itemDetailsVC = segue.destination as? ItemDetailsVC {
+                    print("boxItems: itemDetailsVC is destination  ")
+
+                  itemDetailsVC.itemType = .boxItem
+                    itemDetailsVC.itemsBox = self.box
+                    print("passingTo ItemDetails from Box - Boxx Object \(self.box.boxNumber ) ")
+
+                    itemDetailsVC.item = selectedItem
+
+                }
+            }
+        }
 //                    if segue.identifier == "itemDetails_SEGUE" {
 //                        print("Box to itemDetails_SEGUE ")
             
-                        if let listItemsVC = segue.destination as? AddItemsToBoxVC {
-
-                            listItemsVC.box = self.box
-                            
+//                        if let listItemsVC = segue.destination as? AddItemsToBoxVC {
+//
+//                            listItemsVC.box = self.box
+                        
                             //                            addItem.box = self.box
 //                            addItem.boxItemKey = itemToPass.itemKey
 //                            itemDetailVC.itemType = .boxItem
 //                            print("Item to Pass is \(itemToPass.itemName)")
 //                            print("Item to Pass is \(itemToPass.itemKey)")
-
-                    }
-                    
-                }
-    
+ 
     
     
 }  //end of class

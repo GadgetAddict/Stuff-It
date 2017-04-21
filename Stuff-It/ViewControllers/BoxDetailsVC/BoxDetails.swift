@@ -21,7 +21,7 @@ class BoxDetails: UITableViewController,UIImagePickerControllerDelegate , UINavi
   
     
 
-    var REF_BOXES = DataService.ds.REF_BASE
+    var REF_BOXES = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes")
     var box: Box!
     var boxSegueType: SegueType = .new
     var boxNumber: Int?
@@ -96,11 +96,12 @@ class BoxDetails: UITableViewController,UIImagePickerControllerDelegate , UINavi
         super.viewDidLoad()
   
         hideLocationLabels()
-        self.REF_BOXES = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes")
         
         
         switch boxSegueType {
         case .new:
+            self.box = Box()
+            
              boxContentsCellActive(boxIsNew: true)
         default:
             boxContentsCellActive(boxIsNew: false)
@@ -201,13 +202,24 @@ class BoxDetails: UITableViewController,UIImagePickerControllerDelegate , UINavi
             return
         }
         
-             getBoxNumbers()
+        self.createBoxDictionary() { (key, dict) -> Void in
+        
+        self.box.saveBoxToFirebase(boxKey: key, boxDict: dict, completion: { () -> Void in
+            
+            
+            print("save box to FB and then POP ")
+            let _ =  EZLoadingActivity.hide(success: true, animated: true)
+            
+            popViewController()
+        })
+        
         }
+    }
     
     
     
     
-    func createBoxDictionary() {
+    func createBoxDictionary(withCompletionHandler:(String, Dictionary<String, AnyObject>) -> Void) {
  
         print("createBoxDictionary")
 
@@ -217,13 +229,13 @@ class BoxDetails: UITableViewController,UIImagePickerControllerDelegate , UINavi
  
        
         
-                let boxDict: Dictionary<String, AnyObject> = [
+                var boxDict: Dictionary<String, AnyObject> = [
                     "name" : boxNameLabel.text?.capitalized as AnyObject,
                     "fragile": false as AnyObject,
                     "stackable" : true as AnyObject,
                     "boxCategory" : boxCategory as AnyObject,
 //                    "boxQR" : boxQrString as AnyObject,
-                    "boxNum" : self.boxNumber as AnyObject,
+//                    "boxNum" : self.boxNumber as AnyObject,
                     "location" : boxLocation as AnyObject ,
                     "location_area" : boxLocationArea  as AnyObject,
                     "location_detail" : boxLocationDetail as AnyObject,
@@ -232,34 +244,33 @@ class BoxDetails: UITableViewController,UIImagePickerControllerDelegate , UINavi
 
                 ]
 
-        if boxSegueType == .new {
-           saveNewBoxToFirebaseData(boxDictionary: boxDict)
-        } else {
-            updateFirebaseData(boxDictionary: boxDict)
+        
+        var boxKey: String
+        
+        switch boxSegueType {
+        case .new:
+            let newBoxRef = self.REF_BOXES.childByAutoId()
+            boxKey = newBoxRef.key
+         
+            getNextNewBoxNumber() { (newBoxNumber) -> Void in
+                print("returned NewBoxNumber is \(newBoxNumber ) ")
+            boxDict["boxNum"] = newBoxNumber as AnyObject
 
+            }
+      
+        default:
+             boxKey = self.box.boxKey
         }
+
+        
+     withCompletionHandler(boxKey, boxDict)
  
     }
     
-    func saveNewBoxToFirebaseData(boxDictionary: Dictionary<String, AnyObject>) {
-        self.REF_BOXES = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes").childByAutoId()
-        
-        self.REF_BOXES.setValue(boxDictionary)
-        let _ =  EZLoadingActivity.hide(success: true, animated: true)
-
-        popViewController()
-    }
+//    ALERT: REFACTOR TO MAKE JUST ONE SAVE TO FB - Switch Stmt for .new and just create the KEY using child by auto id, or the existing key - then call method to save
     
-    func updateFirebaseData(boxDictionary: Dictionary<String, AnyObject>) {
-        self.REF_BOXES = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes/\(self.box.boxKey!)")
-        self.REF_BOXES.updateChildValues(boxDictionary)
-       let _ =  EZLoadingActivity.hide(success: true, animated: true)
-
-        
-        popViewController()
-        
-    }
-    
+ 
+   
     
     
     
@@ -281,48 +292,46 @@ class BoxDetails: UITableViewController,UIImagePickerControllerDelegate , UINavi
 //    })
 //    
  
- 
-    func getBoxNumbers(){
-        print("getBoxNumbers")
+    func getNextNewBoxNumber( withCompletionHandler:(Int) -> Void) {
+        var newBoxNumber = 1
+        print("getNextNewBoxNumber")
         
+//        ALERT: Can this be changed to gaurds ?
         self.REF_BOXES.observeSingleEvent(of: .value, with: { (boxExistsSnapshot) in
-               if boxExistsSnapshot.exists() {
-                print("boxExistsSnapshot exists ")
+//               if boxExistsSnapshot.exists() {
+//                print("boxExistsSnapshot exists ")
 
                 self.REF_BOXES.queryOrdered(byChild: "boxNum").queryLimited(toLast: 1).observeSingleEvent(of: .childAdded, with: { (snapshot) in
-                       
+                    print("observeSingleEvent")
+
                         if let boxSnapshot = snapshot.value as? Dictionary<String, AnyObject> {
-                             if let boxNum = boxSnapshot["boxNum"] as? Int   {
-                                 self.boxNumber = (boxNum + 1)
-                                 self.createBoxDictionary()
-                                
-                            } else {
-                                print("boxNum does NOT equal boxSnapshot[boxNum] as? Int")
-                                
-                            }
-                        } else {
-                            print("boxSnapshot is NOT  snapshot.value as dict")
-                            
-                        }
-                        
-                    
+                            print(" if let boxSnapshot = snapshot.value")
+
+                                if let boxNum = boxSnapshot["boxNum"] as? Int   {
+                                print("if let boxNum = boxSnapshot")
+
+                                newBoxNumber = (boxNum + 1)
+//                            } else {
+//                                print("boxNum does NOT equal boxSnapshot[boxNum] as? Int")
+//                            }
+//                        } else {
+//                            print("boxSnapshot is NOT  snapshot.value as dict")
+                            }}
                 }) { (error) in
                     print("query has error \(error)")
-                    
                 }
-           
-                
-               } else {
-                self.boxNumber = 1
-                print("self.boxNumber = 1, now createBoxDict")
-                
-                self.createBoxDictionary()
-
-            }
             
+//            } else {
+//                newBoxNumber = 1
+//                print("self.boxNumber = 1, now createBoxDict")
+//            }
+        
         }) { (noBoxError) in
             print("There was no box: \(noBoxError)")
         }
+        print("call withCompletionHandler")
+
+        withCompletionHandler(newBoxNumber)
     }
     
 
@@ -394,14 +403,14 @@ class BoxDetails: UITableViewController,UIImagePickerControllerDelegate , UINavi
     @IBAction func unwindToBoxDetailsWithStatus(_ segue:UIStoryboardSegue) {
         if let statusVC = segue.source as? BoxStatusTableVC {
             self.boxStatus = (statusVC.selecteStatus?.statusName)!
-            print("STATUS that came back is \(self.boxStatus)")
+            print("STATUS that came back is \(self.boxStatus ?? "none")")
         }
     }
     
     @IBAction func unwindToBoxDetailsWithColor(_ segue:UIStoryboardSegue) {
         if let colorVC = segue.source as? ColorTableVC {
             self.boxColor = (colorVC.selectedColor?.colorName)!
-            print("Color that came back is \(self.boxColor)")
+            print("Color that came back is \(self.boxColor ?? "none")")
         }
     }
     

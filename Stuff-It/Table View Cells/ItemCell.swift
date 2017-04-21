@@ -13,12 +13,10 @@ import Firebase
 class ItemCell: UITableViewCell, UINavigationControllerDelegate {
     
     
-     @IBOutlet weak var rowLabel: UILabel!
-    
+     
        
     var item: Item!
-    var itemBoxDetailsREF: FIRDatabaseReference!
-
+ 
     @IBOutlet weak var nameLbl: UILabel!
     @IBOutlet weak var categoryLbl: UILabel!
     @IBOutlet weak var subCategoryLbl: UILabel!
@@ -45,8 +43,7 @@ class ItemCell: UITableViewCell, UINavigationControllerDelegate {
 //     let getImage_QUEUE = DispatchQueue(label: "com.michael.getImagequeue", qos: DispatchQoS.userInteractive     )
  
         self.item = item
-        
-        itemBoxDetailsREF = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/").child(item.itemKey).child("box")
+     
  
         
         if let qty = item.itemQty {
@@ -56,8 +53,19 @@ class ItemCell: UITableViewCell, UINavigationControllerDelegate {
         }
         
         self.nameLbl.text = item.itemName.capitalized
-        self.categoryLbl.text = "\(item.itemCategory!.capitalized):"
-        self.subCategoryLbl.text = "\(item.itemSubcategory!.capitalized)"
+        
+        if let category = item.itemCategory {
+            self.categoryLbl.text = "\(category.capitalized):  "
+        } else {
+            self.categoryLbl.text = nil
+        }
+        
+        if let subcategory = item.itemSubcategory {
+            self.subCategoryLbl.text = subcategory.capitalized
+        } else {
+            self.subCategoryLbl.text = nil
+        }
+
         
         //check if fragile, show image or don't
         if item.itemFragile == false {
@@ -66,10 +74,21 @@ class ItemCell: UITableViewCell, UINavigationControllerDelegate {
             self.imgFragile.isHidden = false
             
         }
-//        if img != nil {
-//            self.imageThumb.image = img
-//            } else {
-//       getImage_QUEUE.async {
+        
+//        if let itemIsBoxed = item.itemIsBoxed {
+//            self.boxNumberLbl.isHidden = !itemIsBoxed
+//
+//        } else {
+//            self.boxNumberLbl.isHidden = true
+//        }
+        
+        self.boxNumberLbl.isHidden = !self.item.itemIsBoxed
+        
+        if let boxNumber = item.itemBoxNum {
+              self.boxNumberLbl.text = "Box  \(boxNumber)"
+
+        }
+ 
         if let URL = item.itemImgUrl {
             let ref = FIRStorage.storage().reference(forURL: URL)
             ref.data(withMaxSize: 2 * 1024 * 1024, completion: { (data, error) in
@@ -90,23 +109,12 @@ class ItemCell: UITableViewCell, UINavigationControllerDelegate {
                     }
                 })
             }
-        itemBoxDetailsREF.observeSingleEvent(of: .value, with: { (snapshot) in
-       
-            
-            if let _ = snapshot.value as? NSNull {
-                  self.boxNumberLbl.isHidden = true
-            } else {
-                self.boxNumberLbl.text = "Box  \(item.itemBoxNum!)"
-                self.item.itemBoxKey = "12"
-            }
-        })
+     
         
-//        }
-    
- 
     }//ConfigureCell
     
     
+
     
     
     

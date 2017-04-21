@@ -26,7 +26,7 @@ class Box  {
   
     var boxItemCount: Int?
     
-    var boxKey: String! {
+    var boxKey: String {
         return _boxKey
     }
     
@@ -53,10 +53,7 @@ class Box  {
         return _boxName
     }
     
-    var boxLocationName:String? {
-        return _boxLocationName
-    }
-    
+   
     var boxLocationDetail:String? {
         return _boxLocationDetail
     }
@@ -73,6 +70,21 @@ class Box  {
         return _boxColor
     }
  
+ 
+
+    //    MARK: Getters and Setters
+    
+    var boxLocationName:String? {
+        get {
+            return _boxLocationName
+        }
+        set {
+            _boxLocationName = newValue
+        }
+    }
+    
+
+    
     
     
     init(location: String!, area: String?, detail: String?) {
@@ -102,6 +114,11 @@ class Box  {
         self._boxLocationArea = locArea
     }
     */
+    
+    init() {
+        
+    }
+    
     
     init (boxKey: String){
         self._boxKey = boxKey
@@ -160,21 +177,45 @@ class Box  {
         
      }
  
-    func removeItemDetailsFromBox()  {
-        print("  removeItemDetailsFromBox")
-        _boxRef.child("items").removeValue()
-
+    func removeItemDetailsFromBox(itemKey: String)  {
+         _boxRef.child("items/\(itemKey)").removeValue()
+ 
     }
  
     
-    func AddItemDetailsToBox(item:Item) {
-        
-        _boxRef.child("items/\(item.itemKey)").setValue([
-            item.itemName
+    func addItemDetailsToBox(itemDict:Dictionary<String, AnyObject>) {
+  
+            if let itemKey = itemDict["itemKey"], let itemName = itemDict["itemName"], let boxKey =  itemDict["itemBoxKey"] {
+
+        _boxRef = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes/\(boxKey)/items/\(itemKey)")
+
+        _boxRef.setValue([
+            "itemName" :  itemName
             ])
+ 
+        } else {
+            print("One or more of the optionals don’t contain a value")
+        }
 
     }
     
+    
+    func saveBoxToFirebase(boxKey: String, boxDict:Dictionary<String, AnyObject>, completion: () -> ()) {
+        
+        let ref = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes/\(boxKey)")
+        
+        //        let updatedItemData = ["\(itemKey)": itemDict]  as [String : Any]
+        
+        
+        ref.updateChildValues(boxDict, withCompletionBlock: { (error, ref) -> Void in
+            if ((error) != nil) {
+                print("Error updating data: \(String(describing: error?.localizedDescription))")
+                
+            }
+        })
+        
+        completion()
+    }
 
     
     

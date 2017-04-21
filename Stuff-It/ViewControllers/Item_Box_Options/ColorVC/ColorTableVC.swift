@@ -235,7 +235,7 @@ class ColorTableVC: UITableViewController {
             
             let deleteAction = UITableViewRowAction(style: UITableViewRowActionStyle.default, title: "\u{1F5d1}\n Delete", handler: { (action: UITableViewRowAction, indexPath: IndexPath) -> Void in
                 
-                let alert = UIAlertController(title: "Wait!", message: "Are you sure you want to permanently delete: \(colorName)?", preferredStyle: .actionSheet)
+                let alert = UIAlertController(title: "Wait!", message: "Are you sure you want to permanently delete: \(String(describing: colorName))?", preferredStyle: .actionSheet)
                 
                 let DeleteAction = UIAlertAction(title: "Delete", style: .destructive, handler: self.handleDeleteItem)
                 let CancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: self.cancelDeleteItem)
@@ -279,7 +279,7 @@ class ColorTableVC: UITableViewController {
                 tableView.beginUpdates()
                 let color  = colors[indexPath.row]
                 let colorKey = color.colorKey
-                print("Color Key is \(colorKey)")
+                print("Color Key is \(String(describing: colorKey))")
                 self.REF_COLOR.child(colorKey!).removeValue()
                 colorIndexPath = nil
                 tableView.endUpdates()
@@ -300,7 +300,7 @@ class ColorTableVC: UITableViewController {
             return true
         }
         
-        
+    
         
         override  func tableView(_ tableView: UITableView, didSelectRowAt
             indexPath: IndexPath){

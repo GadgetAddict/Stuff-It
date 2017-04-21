@@ -277,7 +277,7 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
         
         let deleteAction = UITableViewRowAction(style: UITableViewRowActionStyle.default, title: "\u{1F5d1}\n Delete", handler: { (action: UITableViewRowAction, indexPath: IndexPath) -> Void in
             
-            let alert = UIAlertController(title: "Wait!", message: "Are you sure you want to permanently delete: \(categoryName)?", preferredStyle: .actionSheet)
+            let alert = UIAlertController(title: "Wait!", message: "Are you sure you want to permanently delete: \(String(describing: categoryName))?", preferredStyle: .actionSheet)
             
             let DeleteAction = UIAlertAction(title: "Delete", style: .destructive, handler: self.handleDeleteItem)
             let CancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: self.cancelDeleteItem)
@@ -321,7 +321,7 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
             tableView.beginUpdates()
             let category  = categories[indexPath.row]
             let categoryKey = category.categoryKey
-            print("Cat Key is \(categoryKey)")
+            print("Cat Key is \(String(describing: categoryKey))")
             self.REF_CATEGORY.child(categoryKey!).removeValue()
             categoryIndexPath = nil
             tableView.endUpdates()
@@ -439,8 +439,7 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
         }
         UIApplication.shared.isNetworkActivityIndicatorVisible = true
         
-        //         REF_STATUS.queryOrdered(byChild: "statusName").observe(.value, with: { snapshot in
-        
+         
         self.REF_CATEGORY.observe(.value, with: { snapshot in
             
             self.categories = []

@@ -21,7 +21,7 @@ class Item  {
     private var _itemNotes: String?
     private var _itemCategory: String?
     private var _itemSubcategory: String?
-    private var _itemBoxNum: Int?
+    private var _itemBoxNum: String?
     private var _itemBoxKey: String?
     private var _itemIsBoxed: Bool!
     private var _itemQty: String?
@@ -37,7 +37,12 @@ class Item  {
     }
     
     var itemColor: String? {
-        return _itemColor
+        get {
+            return _itemColor
+        }
+        set {
+            _itemColor = newValue
+        }
     }
     
     var itemName: String {
@@ -55,14 +60,26 @@ class Item  {
     
     
     var itemCategory: String? {
-        return _itemCategory
+         get {
+            return _itemCategory
+        }
+        set {
+            _itemCategory = newValue
+        }
     }
     
     var itemSubcategory: String? {
-        return _itemSubcategory
+        get {
+            return _itemSubcategory
+    }
+        set{
+             _itemSubcategory = newValue
+        }
     }
     
-    var itemIsBoxed: Bool! {
+    
+
+    var itemIsBoxed: Bool  {
         get {
             return _itemIsBoxed
         }
@@ -71,7 +88,7 @@ class Item  {
         }
     }
 
-    var itemBoxNum: Int? {
+    var itemBoxNum: String? {
         
         get {
             return _itemBoxNum
@@ -120,7 +137,14 @@ class Item  {
         }
     }
 
-    
+    init(itemBoxed: Bool, itemCategory: String?) {
+        self._itemIsBoxed = itemBoxed
+        
+        if let category = itemCategory {
+            self._itemCategory = category
+        }
+       
+    }
     
     
     init(itemKey: String, dictionary: Dictionary <String, AnyObject> ) {
@@ -143,10 +167,10 @@ class Item  {
         if let subcategory = dictionary["itemSubcategory"] as? String {
             self._itemSubcategory = subcategory
         }
-        if let itemIsBoxed = dictionary["itemIsBoxed"] as? Bool {
+        if let itemIsBoxed = dictionary["itemIsBoxed"] as?  Bool {
             self._itemIsBoxed = itemIsBoxed
         }
-        if let itemBoxNum = dictionary["itemBoxNumber"] as? Int {
+        if let itemBoxNum = dictionary["itemBoxNumber"] as? String {
             self._itemBoxNum = itemBoxNum
         }
         if let itemBoxKey = dictionary["itemBoxKey"] as? String {
@@ -192,31 +216,110 @@ class Item  {
     
     
     func removeBoxDetailsFromItem()  {
-        print("  removeItemDetailsFromBox")
-        _itemRef.child("items").removeValue()
+        print("  removeBoxDetailsFromItem")
+//        _itemRef.child("box").removeValue()
+      
+            _itemRef.child("box").setValue([
+          
+            "itemIsBoxed" : false
+            ])
+
         
     }
 
 
     func AddBoxDetailsToItem(box: Box) {
-    
-    _itemRef.child("box/").setValue([
+        print("  AddBoxDetailsToItem - The Item REF is : \(_itemRef.child("box"))")
+
+        _itemRef.child("box").setValue([
         "itemBoxKey" : box.boxKey,
-        "itemBoxNumber" : box.boxNumber,
+        "itemBoxNumber" : String(box.boxNumber),
         "itemIsBoxed" : true
         ])
         
     
     }
 
+ 
+    
+    func saveItemToFirebase(itemKey: String, itemDict:Dictionary<String, AnyObject>, completion: () -> ()) {
+        print("Item Methods: saveItemToFirebase ")
 
+        let ref = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/items/\(itemKey)")
 
-
+//        let updatedItemData = ["\(itemKey)": itemDict]  as [String : Any]
     
 
+        ref.updateChildValues(itemDict, withCompletionBlock: { (error, ref) -> Void in
+            if ((error) != nil) {
+                print("Error updating data: \(String(describing: error?.localizedDescription))")
+             
+            }
+        })
+    
+        completion()
+    }
+
+        
+        
+   
+    
+        
+    
     
     
 }
 
+/*
+backup
+
+func saveItemToFirebase(item: Item) {
+    print("I'm in saveItemToFirebase")
+    
+    let itemDict: Dictionary<String, AnyObject> = [
+        "itemName" :  item.itemName as AnyObject,
+        "imageUrl": item.itemImgUrl as AnyObject,
+        "itemCategory" : item.itemCategory as AnyObject,
+        "itemSubcategory" : item.itemSubcategory as AnyObject,
+        "itemQty" : item.itemQty as AnyObject ,
+        "itemFragile" : item.itemFragile as AnyObject,
+        "itemColor": item.itemColor as AnyObject
+    ]
+    
+    let itemBoxDict: Dictionary<String, AnyObject> = [
+        "itemIsBoxed" :  item.itemIsBoxed as AnyObject,
+        "itemBoxNumber" : item.itemBoxNum as AnyObject,
+        "itemBoxKey" : item.itemBoxKey as AnyObject
+        
+    ]
+    
+    let ref = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/items")
+    // Generate a new push ID for the new post
+    
+    let newItemRef = ref.childByAutoId()
+    
+ 
+    
+    let newItemKey = newItemRef.key
+    
+    // Create the data we want to update
+    
+    let updatedItemData = ["\(newItemKey)": itemDict, "\(newItemKey)/box": itemBoxDict] as [String : Any]
+    
+    // Do a deep-path update
+    
+    ref.updateChildValues(updatedItemData, withCompletionBlock: { (error, ref) -> Void in
+        if ((error) != nil) {
+            print("Error updating data: \(error?.localizedDescription)")
+        }
+    })
+    
+    
+    UIApplication.shared.isNetworkActivityIndicatorVisible = false
+    let _ = EZLoadingActivity.hide(success: true, animated: true)
+    
+}
+
+*/
 
 

@@ -49,13 +49,13 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
                 if let user = user {
                     if(self.activeUser != user){
                         self.activeUser = user
-                        print("-> LOGGED IN AS \(user.email)")
+                        print("-> LOGGED IN AS \(String(describing: user.email))")
                         let userRef = DataService.ds.REF_USERS.child(user.uid).child("collectionAccess/collectionId")
                         userRef.observeSingleEvent(of: .value, with: { snapshot in
                             if let collectionRefString = snapshot.value as? String {
                                 
                                 COLLECTION_ID = collectionRefString
-                                print("PERFORM SEGUE")
+                                print("Login VC: PERFORM SEGUE")
                                 self.segue()
                                 //                                                self.performSegue(withIdentifier: self.loginToApp, sender:nil)
                             }
@@ -178,7 +178,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
             if let collectionRefString = snapshot.value as? String {
 
                 COLLECTION_ID = collectionRefString
-                print("PERFORM SEGUE")
+                print("Login VC: PERFORM SEGUE")
                 self.segue()
 //               self.performSegue(withIdentifier: self.loginToApp, sender:nil)
 

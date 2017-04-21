@@ -36,24 +36,23 @@ class itemFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpt
     }
     
     @IBAction func searchButton(_ sender: UIBarButtonItem) {
-                   print("in searchTapped")
     performSegue(withIdentifier: "searchItem_SEGUE", sender: nil)
             
        
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        loadDataFromFirebase()
+        
+    }
+    
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        print("ItemFeed: removeAllObservers")
         self.REF_ITEMS.removeAllObservers()
     }
  
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        loadItems()
-
-               
-      }
+  
     
     override func viewDidLoad() {
      super.viewDidLoad()
@@ -104,62 +103,55 @@ class itemFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpt
 //        searchBtn.addTarget(self, action: Selector(searchAction), for:  UIControlEvents.touchUpInside)
 //        let leftItem = UIBarButtonItem(customView: searchBtn)
 //        self.navigationItem.leftBarButtonItem = leftItem
-//
+
  }
     
  
     
 
-    
-    func loadItems(){
-        let _ = EZLoadingActivity.show("Loading Items", disableUI: true)
-
-        print("in Function loadItems")
+    func loadDataFromFirebase() {
+        UIApplication.shared.isNetworkActivityIndicatorVisible = true
         
-
-        
-     let queue1 = DispatchQueue(label: "com.michael.loadFB", qos: DispatchQoS.userInitiated)
-
-      // queue1.async {
-        
-        
-        self.REF_ITEMS?.observe(.value, with: {(snapshot)  in
+        self.REF_ITEMS.observe(.value, with: { snapshot in
             self.items = [] // THIS IS THE NEW LINE
-            
-            
-            if let snapshot = snapshot.children.allObjects as? [FIRDataSnapshot] {
-                for snap in snapshot {
-//                    print("ITEM FEED SNAP: \(snap)")
+
+            if let snapshots = snapshot.children.allObjects as? [FIRDataSnapshot] {
+                for snap in snapshots {
+                    print("itemFeed Snap: \(snap)")
                     if let itemDict = snap.value as? Dictionary<String, AnyObject> {
                         let key = snap.key
                         let item = Item(itemKey: key, dictionary: itemDict)
-                            self.items.append(item)
+                        
+                        
+                        if let childSnapshotDict = snapshot.childSnapshot(forPath: "\(key)/box").value as? Dictionary<String, AnyObject> { // FIRDataSnapshot{
+                            let itemBoxNumber = childSnapshotDict["itemBoxNumber"]
+                            let itemBoxKey = childSnapshotDict["itemBoxKey"]
+                            let itemIsBoxed = childSnapshotDict["itemIsBoxed"]
+
+//                            print("childSnapshot itemBoxNumber: \(itemBoxNumber)")
+                            item.itemBoxKey = itemBoxKey as! String?
+                            item.itemBoxNum = itemBoxNumber as! String?
+                            item.itemIsBoxed = itemIsBoxed as! Bool
+                        }
+                        self.items.append(item)
                     }
                 }
             }
-          //  DispatchQueue.main.async {
-                let _ = EZLoadingActivity.hide()
-                self.tableView.reloadData()
-           // }
-        })
+            UIApplication.shared.isNetworkActivityIndicatorVisible = false
+
+            self.tableView.reloadData()
+             })
         
-       
-        //}
     }
-    
-    
     
  
   
-    
         func cancelButtonTapped(){
         _ = navigationController?.popViewController(animated: true)
         
         }
     
- 
- 
-    
+  
         func image(forEmptyDataSet scrollView: UIScrollView!) -> UIImage! {
             var image: String!
             if searchController.isActive {
@@ -255,6 +247,7 @@ class itemFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpt
         if searchController.isActive && searchController.searchBar.text != "" {
             return filteredItems.count
         }
+ 
         return items.count
     }
     
@@ -287,6 +280,7 @@ class itemFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpt
     }
 
  
+//    MARK: Search Function
     
     func filterContentForSearchText(_ searchText: String, scope: String = "Name") {
         
@@ -390,19 +384,19 @@ class itemFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpt
     
     
     func handleDeleteItem(alertAction: UIAlertAction!) -> Void {
-//        print("IN THE DELETE FUNCTION")
-        if let indexPath = itemIndexPath {
-            
-            tableView.beginUpdates()
+         if let indexPath = itemIndexPath {
+             tableView.beginUpdates()
             let itemObject  = items[indexPath.row]
             let itemKey = itemObject.itemKey
             self.REF_ITEMS.child(itemKey).removeValue()
             itemIndexPath = nil
+            itemIndexPath = nil
             tableView.endUpdates()
-            
+    
         }
     }
     
+  
     
     
     func cancelDeleteItem(alertAction: UIAlertAction!) {
@@ -415,16 +409,13 @@ class itemFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpt
  
     
         func scanForBox(alertAction: UIAlertAction!) -> Void {
-            print("Function: scanForBox line 399")
-  
     
             self.performSegue(withIdentifier: "toScanQR", sender: nil)
     
         }
     
         func pickForBox(alertAction: UIAlertAction) -> Void {
-            print("Function: pickForBox line 406")
-            // If ITem is already boxed - warn to remove first 
+            // If ITem is already boxed - warn to remove first
             
             
             // should it remove first and then segue or  unwind and remove/re-add same time ?
@@ -476,18 +467,13 @@ class itemFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpt
             
   
         override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-//            print("prepareForSegue ")
-    
                 if segue.identifier == "showBoxList" {
-                    print("identifier ==  showBoxList ")
-    
                     if let indexPath = itemIndexPath {
                         let itemObject  = items[indexPath.row]
     
                         if let destination = segue.destination as? BoxFeedVC {
-                        destination.boxLoadType = .category
+                        destination.boxLoadType = .itemFeed_matchCategory
                         destination.itemPassed = itemObject
-                            print("itemCategory ==  \(itemObject.itemCategory) ")
     
                         }
                     }
@@ -495,55 +481,47 @@ class itemFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpt
                     if let cell = sender as? UITableViewCell {
                         let indexPath = tableView.indexPath(for: cell)
                         let itemToPass = items[indexPath!.row]
-    
-                    if segue.identifier == "existingItem_SEGUE" {
-                        print("existingItem_SEGUE ")
-    
+                     if segue.identifier == "existingItem_SEGUE" {
+     
                         if let destination = segue.destination as? ItemDetailsVC {
-                            destination.passedItem = itemToPass
+                            destination.item = itemToPass
+                            print("itemFeed Segue: Item: \(itemToPass.itemName) is boxed? \(itemToPass.itemIsBoxed)")
                             destination.itemType = .existing
-                            print("Item to Pass is \(itemToPass.itemName)")
+                            
                         }
                     }
-    
                 }
             }
         }
+ 
     
 //    MARK: Unwind Box Select
-    @IBAction func unwindToItemsFromBoxSel(_ segue:UIStoryboardSegue) {
+    @IBAction func unwindToItemFeed_FromBoxSel(_ segue:UIStoryboardSegue) {
         if let boxFeedViewController = segue.source as? BoxFeedVC {
-
-            if let selectedBox = boxFeedViewController.boxToPass{
-                let boxKey = selectedBox.boxKey
-                let boxNumber = selectedBox.boxNumber
             
-            if let itemToBox = boxFeedViewController.itemPassed {
-                let itemKey = itemToBox.itemKey
-                let itemName = itemToBox.itemName
+            let selectedBox = boxFeedViewController.boxToPass!
+            let itemToBox = boxFeedViewController.itemPassed!
             
-                let REF_BOX = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes/\(boxKey!)/items/\(itemKey)")
-                
-                let REF_ITEM = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/items/\(itemKey)/box")
-                
-                let boxSelectedDict: Dictionary<String, AnyObject> =
-                    ["itemBoxKey" : boxKey! as AnyObject,
-                     "itemIsBoxed" : true as AnyObject,
-                    "itemBoxNumber": boxNumber as AnyObject ]
-                
-                let itemDict: Dictionary<String, String> =
-                    ["itemName" : itemName]
-                
-                print("Adding item to box")
+            if let oldBoxKey = itemToBox.itemBoxKey {
+                let oldBox = Box(boxKey: oldBoxKey)
 
-                REF_BOX.setValue(itemDict)
-                REF_ITEM.updateChildValues(boxSelectedDict)
+//              Remove item from it's old box'
+                oldBox.removeItemDetailsFromBox(itemKey: itemToBox.itemKey)
+            }
 
-                }}}
-         }
- 
-  
+            let newBoxKey = selectedBox.boxKey
+            let boxDict =  ["itemBoxKey": newBoxKey as AnyObject, "itemName": itemToBox.itemName as AnyObject, "itemKey" : itemToBox.itemKey as AnyObject]
+
+             selectedBox.addItemDetailsToBox(itemDict: boxDict)
+
+            
+
+//          Add Box to Item in Firebase
+            itemToBox.AddBoxDetailsToItem(box: selectedBox)
+        }
+    }
     
+
 }//itemFeedVC
 
 

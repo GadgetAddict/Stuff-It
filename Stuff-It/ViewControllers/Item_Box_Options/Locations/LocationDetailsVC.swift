@@ -194,7 +194,7 @@ class LocationDetailsVC: UITableViewController {
 
         if segue.identifier == "unwindToBoxDetailsWithLocation" {
             selectedBoxLocation = Location(name: locName, detail: locDetail, area: locArea )
-           print("Passing Locations to BoX DETAILS: \(selectedBoxLocation.locationName) LocArea: \(selectedBoxLocation.locationArea) LocDetail: \(selectedBoxLocation.locationDetail)")
+           print("Passing Locations to BoX DETAILS: \(selectedBoxLocation.locationName) LocArea: \(String(describing: selectedBoxLocation.locationArea)) LocDetail: \(String(describing: selectedBoxLocation.locationDetail))")
         }
      
         

@@ -6,7 +6,7 @@
 //  Copyright © 2017 Microideas. All rights reserved.
 //
 
-
+/*
 import UIKit
 import Firebase
 
@@ -150,3 +150,4 @@ func loadDataFromFirebase() {
 //    
  
 }
+ */

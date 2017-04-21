@@ -9,7 +9,6 @@
 import UIKit
 
 
-
     class SettingsTextStyle: UILabel {
         
         override func awakeFromNib() {
@@ -22,6 +21,28 @@ import UIKit
 
         
     }
+
+class ItemLabelPlaceholder: UILabel {
+    
+    override func awakeFromNib() {
+    
+       
+            textColor = UIColor.lightGray
+            font = UIFont(name: "PingFang SC Light", size: 24)
+ 
+        
+    }
+        
+    
+    
+    
+    
+        // Initialize with a string and separately declared attribute(s)
+//        let myAttributes2 = [ NSForegroundColorAttributeName: UIColor.green ]
+//        let mutableAttrString4 = NSMutableAttributedString(string: "Hello.", attributes: myAttributes2)
+
+    }
+
 
 
 

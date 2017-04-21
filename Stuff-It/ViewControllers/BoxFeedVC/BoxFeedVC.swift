@@ -14,7 +14,8 @@ import DZNEmptyDataSet
 enum BoxLoadType{
     case all
     case query
-    case category
+    case itemFeed_matchCategory
+    case itemDetails_matchCategory
     
 }
 
@@ -66,8 +67,6 @@ class BoxFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpty
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        print("BoxFeed: removeAllObservers")
-        
         self.REF_BOXES.removeAllObservers()
     }
     
@@ -76,13 +75,11 @@ class BoxFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpty
     }
     
     func loadBoxes(){
-        print("loadBoxes")
         
         UIApplication.shared.isNetworkActivityIndicatorVisible = true
         
         
         self.REF_BOXES = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes")
-        print("Load Collection REF: \(self.REF_BOXES)")
         
         
         
@@ -109,23 +106,24 @@ class BoxFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpty
 
             boxesREF = self.REF_BOXES
             
-            print("Show all boxes")
             
         case .query:
-            
+            print("Query")
 //            boxesREF = (self.REF_BOXES.child(query.child).queryEqual(toValue: query.value))
             
-            print("Show only query boxes")
             
-        case .category:
+        default:
             self.navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Cancel", style: .plain, target: self, action: #selector(cancelButtonTapped))
             
             if let category = self.itemPassed.itemCategory {
                 self.title = "\(category.capitalized) Boxes"
-                print("Show category: \(category)")
 
                 boxesREF = REF_BOXES.queryOrdered(byChild: "boxCategory").queryEqual(toValue: category)
                 
+            }
+            
+            if let passedItemCurrBox = self.itemPassed.itemBoxNum {
+
             }
             
         }
@@ -145,7 +143,6 @@ class BoxFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpty
                         countItemsREF.observe(.value, with: { (itemCountSnapshot) in
                             
                             let theCount = itemCountSnapshot.childrenCount
-                            print("BoxFeed-Items in box: \(theCount)")
                             
                             let box = Box(boxKey: key, dictionary: boxDict)
                             box.boxItemCount = Int(theCount)
@@ -250,7 +247,7 @@ class BoxFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpty
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if let cell  = tableView.dequeueReusableCell(withIdentifier: "BoxCell") as? BoxCell {
-            
+                     
             let box = boxes[indexPath.row]
             cell.configureCell(box: box)
             
@@ -271,16 +268,23 @@ class BoxFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpty
             self.boxToPass = boxes[indexPath.row]
             self.performSegue(withIdentifier: "existingBox_SEGUE", sender: self)
             
-        case .category:
+        case .itemFeed_matchCategory:
             self.REF_BOXES.removeAllObservers()
-            print("BoxFeed: boxLoadType CATEGORY   Did Select Box -> removeAllObservers")
+            print("BoxFeed: boxLoadType from iTem Feed -match  CATEGORY ")
+            self.boxToPass = boxes[indexPath.row]
+            print("You Chose Box-key:  \(self.boxToPass.boxKey)")
+            
+            self.performSegue(withIdentifier: "unwindToItemFeed_FromBoxSel", sender: self)
+       
+        case .itemDetails_matchCategory:
+            self.REF_BOXES.removeAllObservers()
+            print("BoxFeed: boxLoadType from iTem DETAILS  -match  CATEGORY ")
             
             self.boxToPass = boxes[indexPath.row]
-            print("You Chose Box-key:  \(self.boxToPass.boxKey!)")
+            print("You Chose Box-key:  \(self.boxToPass.boxKey)")
             
-            self.performSegue(withIdentifier: "unwindToItemsFromBoxSel", sender: self)
-            
-            
+            self.performSegue(withIdentifier: "unwindToItemDetailsFromListBoxSel", sender: self)
+    
             
         case .query:
             self.boxToPass = boxes[indexPath.row]
@@ -312,7 +316,7 @@ class BoxFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpty
         if  let name = boxToModify.boxName {
             boxLabel = name
         } else {
-            boxLabel = "Number: \(boxNumber)"
+            boxLabel = "Number: \(String(describing: boxNumber))"
         }
         
         //                    let itemKey = itemToModify.itemKey
@@ -384,7 +388,7 @@ class BoxFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpty
             tableView.beginUpdates()
             let boxObject  = boxes[indexPath.row]
             let boxKey = boxObject.boxKey
-            self.REF_BOXES.child(boxKey!).removeValue()
+            self.REF_BOXES.child(boxKey).removeValue()
             itemIndexPath = nil
             tableView.endUpdates()
             
@@ -451,8 +455,7 @@ class BoxFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpty
 
         if let destination = segue.destination as? BoxDetails {
             if segue.identifier == "existingBox_SEGUE" {
-                print("existing Box _SEGUE ")
-                
+                 
                 destination.box = self.boxToPass
                 destination.boxSegueType = .existing
                 //                    print("Item to Pass is \(itemToPass.itemName)")

@@ -153,7 +153,7 @@ class CategoryDetailsVC: UITableViewController {
     @IBAction func unwindWithSelectedCategory(_ segue:UIStoryboardSegue) {
         if let categoryPickerVC = segue.source as? CategoryPicker {
             let selectedCategory = categoryPickerVC.selectedCategory
-            print("Selection that came back is \(selectedCategory)")
+            print("Selection that came back is \(String(describing: selectedCategory))")
             
             let categoryType = categoryPickerVC.categoryType
             
