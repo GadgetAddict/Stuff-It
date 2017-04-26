@@ -1562,7 +1562,7 @@
                                 <rect key="frame" x="0.0" y="28" width="414" height="92"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="aR1-17-zcD" id="Uin-WN-OFI">
-                                    <rect key="frame" x="0.0" y="0.0" width="414" height="92"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="414" height="91.5"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
                                         <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="dYP-Bp-FZd" customClass="StyledView" customModule="Stuff_It" customModuleProvider="target">
@@ -1615,13 +1615,13 @@
                                                             </constraints>
                                                             <variation key="default">
                                                                 <mask key="constraints">
-                                                                    <exclude reference="snd-sq-ndp"/>
-                                                                    <exclude reference="ohS-xk-RfX"/>
-                                                                    <exclude reference="XvW-Ae-wDu"/>
-                                                                    <exclude reference="Low-Tj-pn7"/>
-                                                                    <exclude reference="dpD-Hf-ftZ"/>
-                                                                    <exclude reference="wZc-On-1YX"/>
                                                                     <exclude reference="8LE-mJ-gZy"/>
+                                                                    <exclude reference="Low-Tj-pn7"/>
+                                                                    <exclude reference="XvW-Ae-wDu"/>
+                                                                    <exclude reference="dpD-Hf-ftZ"/>
+                                                                    <exclude reference="ohS-xk-RfX"/>
+                                                                    <exclude reference="snd-sq-ndp"/>
+                                                                    <exclude reference="wZc-On-1YX"/>
                                                                 </mask>
                                                             </variation>
                                                         </imageView>
@@ -2787,13 +2787,13 @@
                                                             </constraints>
                                                             <variation key="default">
                                                                 <mask key="constraints">
-                                                                    <exclude reference="maE-t5-Hgo"/>
+                                                                    <exclude reference="2wy-zo-gbz"/>
                                                                     <exclude reference="EaB-4Q-U4I"/>
                                                                     <exclude reference="YC5-M7-SBy"/>
-                                                                    <exclude reference="r5m-De-SnW"/>
                                                                     <exclude reference="Yur-BO-4Zu"/>
                                                                     <exclude reference="kNq-rr-HGS"/>
-                                                                    <exclude reference="2wy-zo-gbz"/>
+                                                                    <exclude reference="maE-t5-Hgo"/>
+                                                                    <exclude reference="r5m-De-SnW"/>
                                                                 </mask>
                                                             </variation>
                                                         </imageView>
@@ -2831,9 +2831,9 @@
                                                             <nil key="highlightedColor"/>
                                                             <variation key="default">
                                                                 <mask key="constraints">
-                                                                    <exclude reference="wGK-mP-1wh"/>
                                                                     <exclude reference="HfJ-oM-lrl"/>
                                                                     <exclude reference="TGa-fk-iGi"/>
+                                                                    <exclude reference="wGK-mP-1wh"/>
                                                                 </mask>
                                                             </variation>
                                                         </label>
@@ -2909,8 +2909,8 @@
                                                                     <nil key="highlightedColor"/>
                                                                     <variation key="default">
                                                                         <mask key="constraints">
-                                                                            <exclude reference="X5h-zB-j92"/>
                                                                             <exclude reference="2op-X8-LOt"/>
+                                                                            <exclude reference="X5h-zB-j92"/>
                                                                         </mask>
                                                                     </variation>
                                                                 </label>
@@ -3086,10 +3086,10 @@
         <image name="whiteGlass" width="33" height="33"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="eJv-Wj-kkh"/>
-        <segue reference="sX4-Io-a79"/>
         <segue reference="cM7-cw-jXo"/>
         <segue reference="G9A-Hj-gZH"/>
         <segue reference="PNH-dW-2Xa"/>
+        <segue reference="sX4-Io-a79"/>
+        <segue reference="eJv-Wj-kkh"/>
     </inferredMetricsTieBreakers>
 </document>

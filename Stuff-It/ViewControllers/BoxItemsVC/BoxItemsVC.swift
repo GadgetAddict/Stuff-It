@@ -49,9 +49,7 @@ class BoxItemsVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDataSetD
             
             self.REF_BOX_ITEMS = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes/\(self.box.boxKey)/items")
 
-            
             self.REF_BOX_ITEMS.observeSingleEvent(of: .value, with: { snapshot in
-//            self.REF_BOX_ITEMS.observe(.value, with: { snapshot in
     
                 self.items = []
                 if let snapshots = snapshot.children.allObjects as? [FIRDataSnapshot] {
