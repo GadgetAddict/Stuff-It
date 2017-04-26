@@ -426,7 +426,7 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
         
         REF_CATEGORY.childByAutoId().setValue(category)
         
-        //                self.dismiss(animated: true, completion: {})
+       loadDataFromFirebase()
         
     }
     
@@ -439,9 +439,8 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
         }
         UIApplication.shared.isNetworkActivityIndicatorVisible = true
         
-         
-        self.REF_CATEGORY.observe(.value, with: { snapshot in
-            
+        self.REF_CATEGORY.observeSingleEvent(of: .value, with: { snapshot in
+             
             self.categories = []
             if let snapshots = snapshot.children.allObjects as? [FIRDataSnapshot] {
                 for snap in snapshots {

@@ -25,7 +25,6 @@ class BoxCell: UITableViewCell, UINavigationControllerDelegate {
     @IBOutlet weak var boxNameLbl: UILabel!
     @IBOutlet weak var boxNumberLbl: UILabel!
     @IBOutlet weak var boxItemCount: UILabel!
-    @IBOutlet weak var QrCodeImage: UIImageView!
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -63,7 +62,7 @@ class BoxCell: UITableViewCell, UINavigationControllerDelegate {
         if let boxName = box.boxName {
             self.boxNameLbl.text = boxName
         } else {
-            self.boxNameLbl.text = "Box Number"
+            self.boxNameLbl.text = nil
         }
         
 

@@ -25,11 +25,9 @@ import UIKit
 class ItemLabelPlaceholder: UILabel {
     
     override func awakeFromNib() {
-    
-       
+        
             textColor = UIColor.lightGray
             font = UIFont(name: "PingFang SC Light", size: 24)
- 
         
     }
         

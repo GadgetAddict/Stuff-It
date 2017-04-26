@@ -14,3 +14,6 @@ let SHADOW_GRAY: CGFloat = 120.0 / 255.0
 
 
 var COLLECTION_ID: String!
+
+let PingFangFont = UIFont(name: "PingFang SC Light",size: 28.0)
+  

@@ -139,6 +139,7 @@ class itemFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpt
             }
             UIApplication.shared.isNetworkActivityIndicatorVisible = false
 
+            
             self.tableView.reloadData()
              })
         
@@ -251,10 +252,31 @@ class itemFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpt
         return items.count
     }
     
+     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        if let cell = tableView.dequeueReusableCell(withIdentifier: "ItemCell", for: indexPath) as? ItemCell {
+            let item: Item
+            if searchController.isActive && searchController.searchBar.text != "" {
+                item = filteredItems[indexPath.row]
+            } else {
+                item = items[indexPath.row]
+            }
+            var img: UIImage?
+            
+            if let url = item.itemImgUrl {
+                img = itemFeedVC.imageCache.object(forKey: url  as NSString)
+            }
+            
+            cell.configureCell(item: item, img: img)
+            
+            return cell
+        } else {
+            return ItemCell()
+        }
+    }
+/*
     override func tableView(_ tableView: UITableView, cellForRowAt
         indexPath: IndexPath) -> UITableViewCell {
-//        print("Start")
-//        let start = Date()
+ 
         if let cell = tableView.dequeueReusableCell(withIdentifier: "ItemCell", for: indexPath) as? ItemCell {
         let item: Item
         if searchController.isActive && searchController.searchBar.text != "" {
@@ -269,9 +291,7 @@ class itemFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpt
         }
 
         cell.configureCell(item: item, img: img)
-//  let end = Date()
-//            print("Elapsed Time: \(end.timeIntervalSince(start))")
-
+ 
         return cell
         } else {
         return ItemCell()
@@ -279,7 +299,7 @@ class itemFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpt
   
     }
 
- 
+ */
 //    MARK: Search Function
     
     func filterContentForSearchText(_ searchText: String, scope: String = "Name") {
@@ -301,12 +321,7 @@ class itemFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpt
                 
             }
             
-//            
-//            print("Category match is \(categoryMatch)")
-//            print("SCOPE  is \(scope)")
-//            
-            
-            
+
             let result = categoryMatch && searchedItem.lowercased().contains(searchText.lowercased())
             return result
         })
@@ -470,10 +485,16 @@ class itemFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpt
                 if segue.identifier == "showBoxList" {
                     if let indexPath = itemIndexPath {
                         let itemObject  = items[indexPath.row]
-    
+                      
+                        
                         if let destination = segue.destination as? BoxFeedVC {
                         destination.boxLoadType = .itemFeed_matchCategory
                         destination.itemPassed = itemObject
+                            if let itemsBoxkey = itemObject.itemBoxKey {
+                                print("itemsBox key is getting passed \(itemsBoxkey)")
+                                  destination.selectedBox =  itemsBoxkey
+                            }
+                           
     
                         }
                     }
@@ -484,8 +505,9 @@ class itemFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpt
                      if segue.identifier == "existingItem_SEGUE" {
      
                         if let destination = segue.destination as? ItemDetailsVC {
-                            destination.item = itemToPass
-                            print("itemFeed Segue: Item: \(itemToPass.itemName) is boxed? \(itemToPass.itemIsBoxed)")
+                            destination.itemKeyPassed = itemToPass.itemKey
+//                            destination.item = itemToPass.itemBoxKey
+
                             destination.itemType = .existing
                             
                         }
@@ -503,7 +525,7 @@ class itemFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpt
             let itemToBox = boxFeedViewController.itemPassed!
             
             if let oldBoxKey = itemToBox.itemBoxKey {
-                let oldBox = Box(boxKey: oldBoxKey)
+                let oldBox = Box(boxKey: oldBoxKey, boxNumber: nil)
 
 //              Remove item from it's old box'
                 oldBox.removeItemDetailsFromBox(itemKey: itemToBox.itemKey)
@@ -517,7 +539,7 @@ class itemFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpt
             
 
 //          Add Box to Item in Firebase
-            itemToBox.AddBoxDetailsToItem(box: selectedBox)
+            itemToBox.addBoxDetailsToItem(box: selectedBox)
         }
     }
     

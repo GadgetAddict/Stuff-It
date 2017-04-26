@@ -47,7 +47,6 @@
 		AD60C0711E9D2B44005A68B8 /* BoxDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD60C0471E9D2B44005A68B8 /* BoxDetails.swift */; };
 		AD60C0721E9D2B44005A68B8 /* BoxFeedVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD60C0491E9D2B44005A68B8 /* BoxFeedVC.swift */; };
 		AD60C0731E9D2B44005A68B8 /* BoxItemsVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD60C04B1E9D2B44005A68B8 /* BoxItemsVC.swift */; };
-		AD60C0741E9D2B44005A68B8 /* CategoriesVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD60C04E1E9D2B44005A68B8 /* CategoriesVC.swift */; };
 		AD60C0751E9D2B44005A68B8 /* CategoryDetailsVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD60C04F1E9D2B44005A68B8 /* CategoryDetailsVC.swift */; };
 		AD60C0761E9D2B44005A68B8 /* CategoryPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD60C0501E9D2B44005A68B8 /* CategoryPicker.swift */; };
 		AD60C0771E9D2B44005A68B8 /* ColorTableVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD60C0521E9D2B44005A68B8 /* ColorTableVC.swift */; };
@@ -76,6 +75,11 @@
 		AD60C09D1E9FF712005A68B8 /* PlaygroundTableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD60C09C1E9FF712005A68B8 /* PlaygroundTableCell.swift */; };
 		AD94A7F61EA121A400FEE5C7 /* COOL_SYNTAX.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD94A7F51EA121A400FEE5C7 /* COOL_SYNTAX.swift */; };
 		ADC8886D1EAA90A100205D57 /* ItemImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADC8886C1EAA90A100205D57 /* ItemImageView.swift */; };
+		ADF684131EAAA1FE003009A2 /* expanding.caf in Resources */ = {isa = PBXBuildFile; fileRef = ADF6840C1EAAA1FE003009A2 /* expanding.caf */; };
+		ADF684141EAAA1FE003009A2 /* fold.caf in Resources */ = {isa = PBXBuildFile; fileRef = ADF6840D1EAAA1FE003009A2 /* fold.caf */; };
+		ADF684151EAAA1FE003009A2 /* selected.caf in Resources */ = {isa = PBXBuildFile; fileRef = ADF6840E1EAAA1FE003009A2 /* selected.caf */; };
+		ADF684161EAAA1FE003009A2 /* ExpandingMenuButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADF6840F1EAAA1FE003009A2 /* ExpandingMenuButton.swift */; };
+		ADF684171EAAA1FE003009A2 /* ExpandingMenuItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADF684101EAAA1FE003009A2 /* ExpandingMenuItem.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -101,7 +105,7 @@
 		AD60C01C1E9D2B0A005A68B8 /* BoxItemCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BoxItemCell.swift; sourceTree = "<group>"; };
 		AD60C01D1E9D2B0A005A68B8 /* CategoriesCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CategoriesCell.swift; sourceTree = "<group>"; };
 		AD60C01E1E9D2B0A005A68B8 /* CategoryPickerCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CategoryPickerCell.swift; sourceTree = "<group>"; };
-		AD60C01F1E9D2B0A005A68B8 /* ColorCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ColorCell.swift; path = "../../../Table View Cells/ColorCell.swift"; sourceTree = "<group>"; };
+		AD60C01F1E9D2B0A005A68B8 /* ColorCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorCell.swift; sourceTree = "<group>"; };
 		AD60C0201E9D2B0A005A68B8 /* ItemCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ItemCell.swift; sourceTree = "<group>"; };
 		AD60C0211E9D2B0A005A68B8 /* itemSelectCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = itemSelectCell.swift; sourceTree = "<group>"; };
 		AD60C0221E9D2B0A005A68B8 /* LocationPickerCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocationPickerCell.swift; sourceTree = "<group>"; };
@@ -121,7 +125,6 @@
 		AD60C0471E9D2B44005A68B8 /* BoxDetails.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BoxDetails.swift; sourceTree = "<group>"; };
 		AD60C0491E9D2B44005A68B8 /* BoxFeedVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BoxFeedVC.swift; sourceTree = "<group>"; };
 		AD60C04B1E9D2B44005A68B8 /* BoxItemsVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BoxItemsVC.swift; sourceTree = "<group>"; };
-		AD60C04E1E9D2B44005A68B8 /* CategoriesVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CategoriesVC.swift; sourceTree = "<group>"; };
 		AD60C04F1E9D2B44005A68B8 /* CategoryDetailsVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CategoryDetailsVC.swift; sourceTree = "<group>"; };
 		AD60C0501E9D2B44005A68B8 /* CategoryPicker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CategoryPicker.swift; sourceTree = "<group>"; };
 		AD60C0521E9D2B44005A68B8 /* ColorTableVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorTableVC.swift; sourceTree = "<group>"; };
@@ -150,6 +153,11 @@
 		AD60C09C1E9FF712005A68B8 /* PlaygroundTableCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaygroundTableCell.swift; sourceTree = "<group>"; };
 		AD94A7F51EA121A400FEE5C7 /* COOL_SYNTAX.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = COOL_SYNTAX.swift; sourceTree = "<group>"; };
 		ADC8886C1EAA90A100205D57 /* ItemImageView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ItemImageView.swift; sourceTree = "<group>"; };
+		ADF6840C1EAAA1FE003009A2 /* expanding.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = expanding.caf; sourceTree = "<group>"; };
+		ADF6840D1EAAA1FE003009A2 /* fold.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = fold.caf; sourceTree = "<group>"; };
+		ADF6840E1EAAA1FE003009A2 /* selected.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = selected.caf; sourceTree = "<group>"; };
+		ADF6840F1EAAA1FE003009A2 /* ExpandingMenuButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExpandingMenuButton.swift; sourceTree = "<group>"; };
+		ADF684101EAAA1FE003009A2 /* ExpandingMenuItem.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExpandingMenuItem.swift; sourceTree = "<group>"; };
 		BE9386597BBFD8D75A259919 /* Pods_Stuff_It.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Stuff_It.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		FB85C3D5F2103B187FEE8310 /* Pods-Stuff-It.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Stuff-It.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Stuff-It/Pods-Stuff-It.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -204,6 +212,7 @@
 				AD60BFFB1E9D2973005A68B8 /* Views */,
 				AD60C0021E9D299C005A68B8 /* ViewControllers */,
 				AD60BFFF1E9D2987005A68B8 /* Storyboards */,
+				ADF6840B1EAAA1FE003009A2 /* Sounds */,
 				AD60BFF01E9D28AB005A68B8 /* Assets.xcassets */,
 				AD60BFF21E9D28AB005A68B8 /* LaunchScreen.storyboard */,
 				AD60BFF51E9D28AB005A68B8 /* Info.plist */,
@@ -214,6 +223,7 @@
 		AD60BFFB1E9D2973005A68B8 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				ADF684081EAAA1FE003009A2 /* ExpandingMenu */,
 				AD60C02F1E9D2B15005A68B8 /* BoxNumberLabel.swift */,
 				AD60C0301E9D2B15005A68B8 /* EZLoadingActivity.swift */,
 				AD60C0311E9D2B15005A68B8 /* ItemRoundButton.swift */,
@@ -287,6 +297,7 @@
 				AD60C01C1E9D2B0A005A68B8 /* BoxItemCell.swift */,
 				AD60C01D1E9D2B0A005A68B8 /* CategoriesCell.swift */,
 				AD60C01E1E9D2B0A005A68B8 /* CategoryPickerCell.swift */,
+				AD60C01F1E9D2B0A005A68B8 /* ColorCell.swift */,
 				AD60C0201E9D2B0A005A68B8 /* ItemCell.swift */,
 				AD60C0211E9D2B0A005A68B8 /* itemSelectCell.swift */,
 				AD60C0221E9D2B0A005A68B8 /* LocationPickerCell.swift */,
@@ -373,8 +384,6 @@
 		AD60C04D1E9D2B44005A68B8 /* CategoryVC */ = {
 			isa = PBXGroup;
 			children = (
-				AD60C04E1E9D2B44005A68B8 /* CategoriesVC.swift */,
-				AD60C01F1E9D2B0A005A68B8 /* ColorCell.swift */,
 				AD60C04F1E9D2B44005A68B8 /* CategoryDetailsVC.swift */,
 				AD60C0501E9D2B44005A68B8 /* CategoryPicker.swift */,
 			);
@@ -492,6 +501,26 @@
 			path = WalkThrough;
 			sourceTree = "<group>";
 		};
+		ADF684081EAAA1FE003009A2 /* ExpandingMenu */ = {
+			isa = PBXGroup;
+			children = (
+				ADF6840F1EAAA1FE003009A2 /* ExpandingMenuButton.swift */,
+				ADF684101EAAA1FE003009A2 /* ExpandingMenuItem.swift */,
+			);
+			path = ExpandingMenu;
+			sourceTree = "<group>";
+		};
+		ADF6840B1EAAA1FE003009A2 /* Sounds */ = {
+			isa = PBXGroup;
+			children = (
+				ADF6840C1EAAA1FE003009A2 /* expanding.caf */,
+				ADF6840D1EAAA1FE003009A2 /* fold.caf */,
+				ADF6840E1EAAA1FE003009A2 /* selected.caf */,
+			);
+			name = Sounds;
+			path = Views/ExpandingMenu/ExpandingMenu/Assets/Sounds;
+			sourceTree = "<group>";
+		};
 		EDF6BF73F9B758CC368DDF0D /* Pods */ = {
 			isa = PBXGroup;
 			children = (
@@ -531,7 +560,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0820;
-				LastUpgradeCheck = 0820;
+				LastUpgradeCheck = 0830;
 				ORGANIZATIONNAME = Microideas;
 				TargetAttributes = {
 					AD60BFE51E9D28AB005A68B8 = {
@@ -566,11 +595,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				AD60BFF41E9D28AB005A68B8 /* LaunchScreen.storyboard in Resources */,
+				ADF684151EAAA1FE003009A2 /* selected.caf in Resources */,
+				ADF684131EAAA1FE003009A2 /* expanding.caf in Resources */,
 				AD60C01A1E9D2AFE005A68B8 /* GoogleService-Info.plist in Resources */,
 				AD60C0921E9D2B5C005A68B8 /* Status.storyboard in Resources */,
 				AD60C08F1E9D2B5C005A68B8 /* Color.storyboard in Resources */,
 				AD60BFF11E9D28AB005A68B8 /* Assets.xcassets in Resources */,
 				AD60C03D1E9D2B15005A68B8 /* Info.plist in Resources */,
+				ADF684141EAAA1FE003009A2 /* fold.caf in Resources */,
 				AD60C08E1E9D2B5C005A68B8 /* Categories.storyboard in Resources */,
 				AD60C0911E9D2B5C005A68B8 /* Main.storyboard in Resources */,
 				AD60C0901E9D2B5C005A68B8 /* Locations.storyboard in Resources */,
@@ -640,6 +672,7 @@
 				AD60C0881E9D2B44005A68B8 /* WalkThroughPageController.swift in Sources */,
 				AD60C0261E9D2B0A005A68B8 /* BoxItemCell.swift in Sources */,
 				AD60C07E1E9D2B44005A68B8 /* itemFeedVC.swift in Sources */,
+				ADF684171EAAA1FE003009A2 /* ExpandingMenuItem.swift in Sources */,
 				AD60C03E1E9D2B15005A68B8 /* SCLAlertView.swift in Sources */,
 				AD60C0751E9D2B44005A68B8 /* CategoryDetailsVC.swift in Sources */,
 				AD60C00A1E9D2AD1005A68B8 /* Box.swift in Sources */,
@@ -647,6 +680,7 @@
 				AD60C03F1E9D2B15005A68B8 /* SCLExtensions.swift in Sources */,
 				AD60C0871E9D2B44005A68B8 /* WalkThroughContent.swift in Sources */,
 				AD60C0271E9D2B0A005A68B8 /* CategoriesCell.swift in Sources */,
+				ADF684161EAAA1FE003009A2 /* ExpandingMenuButton.swift in Sources */,
 				AD60C0801E9D2B44005A68B8 /* LoginViewController.swift in Sources */,
 				AD60C02D1E9D2B0A005A68B8 /* LocationsCell.swift in Sources */,
 				AD60C09D1E9FF712005A68B8 /* PlaygroundTableCell.swift in Sources */,
@@ -673,7 +707,6 @@
 				AD60C0791E9D2B44005A68B8 /* LocationPickerVC.swift in Sources */,
 				AD60C09B1E9FF5CF005A68B8 /* PlayingFireBaseTableVC.swift in Sources */,
 				AD60C0291E9D2B0A005A68B8 /* ColorCell.swift in Sources */,
-				AD60C0741E9D2B44005A68B8 /* CategoriesVC.swift in Sources */,
 				AD94A7F61EA121A400FEE5C7 /* COOL_SYNTAX.swift in Sources */,
 				AD60C0711E9D2B44005A68B8 /* BoxDetails.swift in Sources */,
 				AD60C0701E9D2B44005A68B8 /* AddItemsToBoxVC.swift in Sources */,
@@ -805,6 +838,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = FB85C3D5F2103B187FEE8310 /* Pods-Stuff-It.debug.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = 2F3H857UKN;
 				INFOPLIST_FILE = "Stuff-It/Info.plist";
@@ -819,6 +853,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 26DD275E742BCE499C8CEDD6 /* Pods-Stuff-It.release.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = 2F3H857UKN;
 				INFOPLIST_FILE = "Stuff-It/Info.plist";

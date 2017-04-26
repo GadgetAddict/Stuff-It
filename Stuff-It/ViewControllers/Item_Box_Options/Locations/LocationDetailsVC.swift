@@ -26,12 +26,10 @@ class LocationDetailsVC: UITableViewController {
     @IBOutlet weak var areaTableCell: UITableViewCell!
     @IBOutlet weak var detailTableCell: UITableViewCell!
     
-     var passedBoxLocation: Box?
-    var passedALocation: Bool = false
+     var passedALocation: Bool = false
     
     var location:Location!
-    var selectedBoxLocation: Location!
-    var categorySelectionOption: CategorySelection = .item
+     var categorySelectionOption: CategorySelection = .item
 
     var locationSelection: LocationSelection = .box
     var locName:String! {
@@ -49,11 +47,11 @@ class LocationDetailsVC: UITableViewController {
          }
     }
     
-    var locArea:String = "Area" {
+    var locArea:String? {
         didSet {
-            areaLabel.text? = locArea
-            self.location = Location(name: locName, detail: nil, area: locArea)
- 
+            areaLabel.text? = locArea!
+             self.location.locationArea = locArea
+            
             detailTableCell.isUserInteractionEnabled = true
             detailLabel.isHidden = false
             detailLabel.attributedText = changeDetailText(string: "Select", font: "HelveticaNeue-Bold")
@@ -62,15 +60,18 @@ class LocationDetailsVC: UITableViewController {
         }
     }
     
-    var locDetail:String! {
+    var locDetail:String? {
         didSet {
-            detailLabel.text? = locDetail
-            self.location = Location(name: locName, detail: locDetail, area: locArea)
+            detailLabel.text? = locDetail!
+            self.location.locationDetail = locDetail
+
+//            self.location = Location(name: locName, detail: locDetail, area: locArea)
          }
     }
     
     func changeDetailText(string: String, font: String) -> NSAttributedString {
    
+        
         let font  = UIFont(name: font, size: 17)
         
         let attributes :Dictionary = [NSFontAttributeName : font]
@@ -95,17 +96,17 @@ class LocationDetailsVC: UITableViewController {
     
     func hideDoneButton(isHidden: Bool)  {
         if isHidden == true {
-            doneButton?.isEnabled      = false
-            doneButton?.tintColor    = UIColor.clear
+            doneButton?.isEnabled = false
+            doneButton?.tintColor = UIColor.clear
         }else{
-            doneButton?.isEnabled      = true
-            doneButton?.tintColor    = nil
+            doneButton?.isEnabled = true
+            doneButton?.tintColor = nil
         }
         
     }
     
         override func viewDidLoad() {
-            
+            print("LocationDetails: ew")
             hideDoneButton(isHidden:true)
             
             detailTableCell.isUserInteractionEnabled = false
@@ -128,22 +129,33 @@ class LocationDetailsVC: UITableViewController {
             locNameLabel.attributedText = locationAttrString
            
             if passedALocation == true {
+                print("LocationDetails:passedALocation == true")
+
                 loadPassedLocations()
+            } else {
+                print("LocationDetails:passedALocation == false")
             }
        
     }
     
     func loadPassedLocations() {
-        if let passedLocation = passedBoxLocation?.boxLocationName {
-             self.locName = passedLocation
+        print("LocationDetails:loadPassedLocations Func")
+
+        if let passedLocation = self.location {
+            if let location = passedLocation.locationName {
+             self.locName = location
         }
-        if let passedLocationArea = passedBoxLocation?.boxLocationArea {
-            self.locArea = passedLocationArea
+        if let area = passedLocation.locationArea {
+            print("LocationDetails:passedBoxLocation = \(area)")
+
+            self.locArea = area
         }
-        if let passedLocationDetail = passedBoxLocation?.boxLocationDetail {
-            self.locDetail = passedLocationDetail
+        if let detail = passedLocation.locationDetail {
+            print("LocationDetails:passedBoxLocation = \(detail)")
+
+            self.locDetail = detail
         }
-        
+        }
     }
 
     @IBAction func doneButtonPressed(_ sender: UIBarButtonItem) {
@@ -193,8 +205,9 @@ class LocationDetailsVC: UITableViewController {
         print("LocDetails prepare for segue called")
 
         if segue.identifier == "unwindToBoxDetailsWithLocation" {
-            selectedBoxLocation = Location(name: locName, detail: locDetail, area: locArea )
-           print("Passing Locations to BoX DETAILS: \(selectedBoxLocation.locationName) LocArea: \(String(describing: selectedBoxLocation.locationArea)) LocDetail: \(String(describing: selectedBoxLocation.locationDetail))")
+//            selectedBoxLocation = self.location
+//            selectedBoxLocation = Location(name: locName, detail: locDetail, area: locArea )
+//           print("Passing Locations to BoX DETAILS: \(selectedBoxLocation.locationName) LocArea: \(String(describing: selectedBoxLocation.locationArea)) LocDetail: \(String(describing: selectedBoxLocation.locationDetail))")
         }
      
         

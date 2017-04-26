@@ -11,28 +11,25 @@ import Firebase
 import DZNEmptyDataSet
 
 class BoxItemsVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDataSetDelegate {
-  
-//    MARK: Refactor 
- 
-    
     
         var items = [Item]()
         var box: Box!
         var selectedItem: Item!
         var boxItemIndexPath: NSIndexPath? = nil
-//        var collectionID: String!
         var REF_BOX_ITEMS: FIRDatabaseReference!
  
     @IBAction func addToBoxBtn(_ sender: UIBarButtonItem) {
 //        Take all checked items that are in the array and add their keys to the Box/contents in Firebase
     
-    
-    
     }
+   
+//    override func viewWillDisappear(_ animated: Bool) {
+//        super.viewWillDisappear(animated)
+//        self.REF_ITEMS.removeAllObservers()
+//    }
+
     
-    
-    
-        override func viewDidLoad() {
+    override func viewDidLoad() {
             super.viewDidLoad()
     
             tableView.tableFooterView = UIView()
@@ -40,37 +37,21 @@ class BoxItemsVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDataSetD
     
             self.tableView.emptyDataSetSource = self
             self.tableView.emptyDataSetDelegate = self
-            
-            
-//            let defaults = UserDefaults.standard
-//    
-//            if (defaults.object(forKey: "CollectionIdRef") != nil) {
-//                print("Getting Defaults")
-//    
-//                if let collectionId = defaults.string(forKey: "CollectionIdRef") {
-//                    COLLECTION_ID = collectionId
-//                }
-//            }
-    
+
             loadDataFromFirebase()
-    
-    
-    
+ 
         }   // End ViewDidLoad
-    
     
     
         func loadDataFromFirebase() {
             print("loadDataFromFirebase")
-
             UIApplication.shared.isNetworkActivityIndicatorVisible = true
             
             self.REF_BOX_ITEMS = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes/\(self.box.boxKey)/items")
-//                  print("REFERENCE: \(myRef)")
-       
-            //         REF_STATUS.queryOrdered(byChild: "statusName").observe(.value, with: { snapshot in
-    
-            self.REF_BOX_ITEMS.observe(.value, with: { snapshot in
+
+            
+            self.REF_BOX_ITEMS.observeSingleEvent(of: .value, with: { snapshot in
+//            self.REF_BOX_ITEMS.observe(.value, with: { snapshot in
     
                 self.items = []
                 if let snapshots = snapshot.children.allObjects as? [FIRDataSnapshot] {
@@ -87,12 +68,9 @@ class BoxItemsVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDataSetD
                 
                 self.tableView.reloadData()
                 UIApplication.shared.isNetworkActivityIndicatorVisible = false
-                
             })
         }
     
-   
- 
     //MARK: - UITableViewDataSource
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -112,10 +90,10 @@ class BoxItemsVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDataSetD
         
                     self.tableView.separatorStyle = UITableViewCellSeparatorStyle.none
                 }
-                
                 return 0
             }
-        
+    
+    
     
         override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
             
@@ -129,10 +107,7 @@ class BoxItemsVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDataSetD
                         return BoxItemCell()
                     }
                 }
-   
-    
-    
-    
+
     
     override func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
         
@@ -152,17 +127,15 @@ class BoxItemsVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDataSetD
             alert.addAction(DeleteAction)
             alert.addAction(CancelAction)
             
-            
             self.present(alert, animated: true, completion: nil)
             
         })
         
         deleteAction.backgroundColor = UIColor.red
         
-        
         return [deleteAction ]
-        
     }
+    
     
     override  func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath){
         print("boxItems: didSelectRowAt ->Call segue")
@@ -173,10 +146,10 @@ class BoxItemsVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDataSetD
    
     
     
-    
     func image(forEmptyDataSet scrollView: UIScrollView!) -> UIImage! {
         return UIImage(named: "package")
     }
+    
     
     func title(forEmptyDataSet scrollView: UIScrollView!) -> NSAttributedString! {
         let text = "This Box is Empty"
@@ -187,6 +160,7 @@ class BoxItemsVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDataSetD
         
         return NSAttributedString(string: text, attributes: attribs)
     }
+    
     
     func description(forEmptyDataSet scrollView: UIScrollView!) -> NSAttributedString! {
         let text = "Add Items By Tapping the + Button."
@@ -222,55 +196,33 @@ class BoxItemsVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDataSetD
     }
 
     
-    
     func handleDeleteItem(alertAction: UIAlertAction!) -> Void {
         print("IN THE DELETE FUNCTION")
-        
-        
+//        tableView.beginUpdates()
+
         if let indexPath = boxItemIndexPath {
-            
-            tableView.beginUpdates()
-            let itemObject  = items[indexPath.row]
-            let itemKey = itemObject.itemKey
-            let REF_ITEMS = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/items/\(itemKey)")
-
-     
-
-            
-//            let itemBoxDetails: Dictionary<String, AnyObject> = [
-//                "itemBoxKey" :  "\(self.box.boxKey)" as AnyObject,
-//                "itemBoxNumber" : "\(self.box.boxNumber)" as AnyObject,
-//                "itemIsBoxed" : true as AnyObject]
-            
-//            REF_ITEMS.setValue(nil)
-//REF_ITEMS.removeValue()
-            
-            
+            let itemToDelete  = items[indexPath.row]
             
 //            remove item from box
-            self.REF_BOX_ITEMS.child(itemKey).removeValue()
-            
-//            remove box details from Item
-            
-            
-            REF_ITEMS.child(self.box.boxKey).removeValue()
+            self.box.removeItemDetailsFromBox(itemKey: itemToDelete.itemKey)
 
-            boxItemIndexPath = nil
-            tableView.endUpdates()
-            
+//            remove box details from Item
+            itemToDelete.removeBoxDetailsFromItem()
+ 
         }
+        boxItemIndexPath = nil
+
+//        tableView.endUpdates()
+        tableView.reloadData()
     }
-    
     
     
     func cancelDeleteItem(alertAction: UIAlertAction!) {
         boxItemIndexPath = nil
     }
+   
     
-
-
-
-        override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
             print("BoxItems: prepareForSegue ")
             
             if segue.identifier == "addToBox" {
@@ -279,6 +231,7 @@ class BoxItemsVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDataSetD
                     
             if let addItemsVC = segue.destination as? AddItemsToBoxVC {
                 addItemsVC.box = self.box
+                addItemsVC.boxsCurrentItems = self.items
                 }
                 
             } else {
@@ -287,45 +240,12 @@ class BoxItemsVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDataSetD
                     print("boxItems: itemDetailsVC is destination  ")
 
                   itemDetailsVC.itemType = .boxItem
-                    itemDetailsVC.itemsBox = self.box
-                    print("passingTo ItemDetails from Box - Boxx Object \(self.box.boxNumber ) ")
+                    print("passingTo ItemDetails from Box - Boxx Object \(self.box.boxNumber! ) ")
 
-                    itemDetailsVC.item = selectedItem
+                    itemDetailsVC.itemKeyPassed = selectedItem.itemKey
 
                 }
             }
         }
-//                    if segue.identifier == "itemDetails_SEGUE" {
-//                        print("Box to itemDetails_SEGUE ")
-            
-//                        if let listItemsVC = segue.destination as? AddItemsToBoxVC {
-//
-//                            listItemsVC.box = self.box
-                        
-                            //                            addItem.box = self.box
-//                            addItem.boxItemKey = itemToPass.itemKey
-//                            itemDetailVC.itemType = .boxItem
-//                            print("Item to Pass is \(itemToPass.itemName)")
-//                            print("Item to Pass is \(itemToPass.itemKey)")
- 
-    
-    
-}  //end of class
 
-//  delete item and storage
-//// Remove the post from the DB
-//ref.child("posts").child(selectedPost.postID).removeValue { error in
-//    if error != nil {
-//        print("error \(error)")
-//    }
-//}
-//// Remove the image from storage
-//let imageRef = storage.child("posts").child(uid).child("\(selectedPost.postID).jpg")
-//imageRef.delete { error in
-//    if let error = error {
-//        // Uh-oh, an error occurred!
-//    } else {
-//        // File deleted successfully
-//    }
-//}
-//}
+}

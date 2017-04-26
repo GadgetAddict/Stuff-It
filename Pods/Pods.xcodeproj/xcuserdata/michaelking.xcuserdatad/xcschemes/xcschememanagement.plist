@@ -14,16 +14,6 @@
 			<key>isShown</key>
 			<false/>
 		</dict>
-		<key>ExpandingMenu-ExpandingMenu.xcscheme</key>
-		<dict>
-			<key>isShown</key>
-			<false/>
-		</dict>
-		<key>ExpandingMenu.xcscheme</key>
-		<dict>
-			<key>isShown</key>
-			<false/>
-		</dict>
 		<key>FBSDKCoreKit.xcscheme</key>
 		<dict>
 			<key>isShown</key>
@@ -47,22 +37,17 @@
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
-		<key>151BCE78B6280C3F175F539C3D5D1DA6</key>
+		<key>14AEE1688893C52313C3611F0957BFEC</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>280538ABDD759F05BBBAB65B5A700FB6</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
 		<key>44CAD6CE523055ED339E87154473A254</key>
-		<dict>
-			<key>primary</key>
-			<true/>
-		</dict>
-		<key>4891075793C5A59974E6C23CCAADEAD2</key>
-		<dict>
-			<key>primary</key>
-			<true/>
-		</dict>
-		<key>7409E312376929E18E79DC1DE95F21FF</key>
 		<dict>
 			<key>primary</key>
 			<true/>
@@ -73,11 +58,6 @@
 			<true/>
 		</dict>
 		<key>D386C75EFD4F03725E4EFB866B600B9A</key>
-		<dict>
-			<key>primary</key>
-			<true/>
-		</dict>
-		<key>EB3C30C12812E277147F8CAC42660691</key>
 		<dict>
 			<key>primary</key>
 			<true/>

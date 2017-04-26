@@ -34,21 +34,7 @@ class LocationPickerVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDa
         
         tableView.tableFooterView = UIView()
         tableView.tableFooterView = UIView(frame: CGRect.zero)
-
-// 
-//        let defaults = UserDefaults.standard
-//
-//        if (defaults.object(forKey: "CollectionIdRef") != nil) {
-//            print("Getting Defaults")
-//
-//            if let collectionId = defaults.string(forKey: "CollectionIdRef") {
-//                self.collectionID = collectionId
-//            }}
-
-
-     
-        
-        
+      
         self.REF_LOCATION = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/locations/\(locationType.rawValue)")
         
         
@@ -59,8 +45,8 @@ class LocationPickerVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDa
     
       
         
-        // End ViewDidLoad
-       }
+               } // End ViewDidLoad
+
     
  
     
@@ -110,12 +96,7 @@ func editButtonPressed(){
             return locations.count
     }
    
-    
-//    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-//        self.performSegue(withIdentifier: "unwindWithSelectedLocation", sender: self)
-//
-//    }
-    
+
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     
@@ -380,7 +361,7 @@ func editButtonPressed(){
  
         
         
-        print("I'm in postToFirebase")
+        print("Location Picker postToFirebase")
         
         let newLocationTrimmed = enteredText.trimmingCharacters(in: NSCharacterSet.whitespaces)
         
@@ -389,7 +370,7 @@ func editButtonPressed(){
         
         REF_LOCATION.childByAutoId().setValue(location)
         
-   
+        loadDataFromFirebase()
         
     }
     
@@ -414,8 +395,9 @@ func editButtonPressed(){
         }
          print("REF_LOCATION: \(REF_LOCATION!)")
         
-            self.REF_LOCATION.observe(.value, with: { snapshot in
-        
+//            self.REF_LOCATION.observe(.value, with: { snapshot in
+                self.REF_LOCATION.observeSingleEvent(of: .value, with: { snapshot in
+
                 self.locations = []
                 if let snapshots = snapshot.children.allObjects as? [FIRDataSnapshot] {
                     for snap in snapshots {

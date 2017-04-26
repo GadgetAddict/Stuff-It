@@ -9,12 +9,11 @@
 
 import UIKit
 import Firebase
-import ExpandingMenu
 
 enum ItemType {
-    case new
-    case existing
-    case boxItem
+    case new       //create empty item->create expanding buttons
+    case existing    // item object passed, updateTheView,  pull box details from FB, updateBoxDetailsView
+    case boxItem        // box Object passed, updateBoxDetailsView,  pull item details from FB, updateTheView
 }
 
 enum ImageStatus{
@@ -24,29 +23,30 @@ enum ImageStatus{
 }
 
 enum BoxChangeType{
-    case add
-    case update
-    case remove
-    case none
+//    when save button pressed - what actions need to be taken with the item and box models
+    case none, add, update, remove
+ 
+    
 }
 
 
 
 class ItemDetailsVC: UITableViewController,UIImagePickerControllerDelegate , UINavigationControllerDelegate, UITextFieldDelegate {
     
+
     
-    var itemType: ItemType = .new
-    var boxChangeType: BoxChangeType = .none
+    var imageChanged = ImageStatus.noImage
+    var itemType = ItemType.new
+    var boxChangeType = BoxChangeType.none
+    var itemKeyPassed: String!
+    
     var item: Item!
-    var itemsBox: Box!
+    var box: Box!
     
- 
     var REF_ITEMS = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/items")
     var collectionId: String!
     
-    var imageChanged: ImageStatus = .noImage
-    
-    var fragileStatus: Bool = false
+   
 
     @IBOutlet weak var boxDetailsTableCell: UITableViewCell!
     @IBOutlet weak var fragileSwitch: SevenSwitch!
@@ -56,70 +56,67 @@ class ItemDetailsVC: UITableViewController,UIImagePickerControllerDelegate , UIN
     @IBOutlet weak var itemColor: UILabel!
     @IBOutlet weak var itemQty: UITextField!
     @IBOutlet weak var boxNumberHeaderLabel: UILabel!
-    @IBOutlet weak var boxDetails: UILabel!
+    @IBOutlet weak var boxLocationName: UILabel!
+    @IBOutlet weak var boxLocationArea: UILabel!
     @IBOutlet weak var subcategoryHeading: UILabel!
   
+    @IBOutlet weak var saveItemButton: UIBarButtonItem!
  
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        self.REF_ITEMS.removeAllObservers()
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
-      
-  
-        
-        
-//        var label = UILabel()
-//        let bigBoldFont = UIFont.boldSystemFont(ofSize: 18.0)
-//        
-//        var attrString = NSMutableAttributedString(string: "This text is bold.")
-//        attrString.addAttribute(kCTFontAttributeName as String, value: bigBoldFont, range: NSMakeRange(13, 4))
-//        
-//        label.attributedText = attrString
+
+        itemChanged = false
+
         createNumPadToolbar()
+
         tableView.tableFooterView = UIView()
         tableView.tableFooterView = UIView(frame: CGRect.zero)
 
- 
-       
         switch itemType {
-            
+
         case .boxItem:
-            loadPassedItem()
-updateBoxDetailsView()
+            print("I am from BoxItem= was passed itemKey: \(self.item.itemKey)")
+
+            
+//            boxContents Segue should have set self.box object
+            
+ 
+            
+                loadDataFromFirebase()
             
             boxChangeType = .update
             boxDetailsTableCell.isHidden = false
             boxDetailsTableCell.isUserInteractionEnabled = true
- 
+
         case .existing:
-
-            updateViewWithItem()
-//           Because item is in a box - any box changes will be .update, so create box object to hold current box details
-           
-           if let itemsBoxKey = self.item.itemBoxKey {
-            self.itemsBox = Box(boxKey: itemsBoxKey)
-            loadItemBoxDetailsFromFireBase()
-            boxChangeType = .update
-            }
-           
-            self.downloadImageFromFirebase()
-
-
-        case .new:
-           
-            self.item = Item(itemBoxed: false, itemCategory: nil)
             
+            loadDataFromFirebase()
+//
+//            if let _ = self.item.itemBoxKey {
+//                boxChangeType = .update
+//            } else {
+//                boxChangeType = .none
+//            }
+    
+        case .new:
+            self.item = Item(itemBoxed: false, itemCategory: "Un-Categorized")
             boxDetailsTableCell.isHidden = true
             boxDetailsTableCell.isUserInteractionEnabled = false
-            
             self.title = "New Item"
-         
-            
+  
             configureExpandingMenuButton()
 
          }
      
-    
-        // Image Picker Setup 
+
+        
+        
+        // Image Picker Setup
         picker.delegate = self
         myImageView.layer.borderWidth = 2.0
         myImageView.layer.borderColor = UIColor.white.cgColor
@@ -136,25 +133,23 @@ updateBoxDetailsView()
     }   // END VIEW DID LOAD
     
     
+    
+ 
     func completionFunction(completion: () -> ()) {
         
         completion()
         
     }
     
-    
-    func updateSaveButton()  {
-        
- 
-//            Make Save Button BOLD!
- 
-    }
-    
-    
-    
+   
 //    MARK: Fragile
     
+    var fragileStatus: Bool = false
+    
+    
     @IBAction func fragileSwitchTapped(_ sender: SevenSwitch) {
+        self.itemChanged = true
+        
         if fragileSwitch.isOn()  {
             fragileStatus = true
         } else {
@@ -163,7 +158,33 @@ updateBoxDetailsView()
     
     }
  
+    var itemChanged: Bool! {
+        didSet {
+        print("itemChanged Did Set ")
+                if itemChanged == true
+                {
+                    print("itemChanged - Should be True ")
+                     self.saveItemButton.title = "Save"
+                    self.navigationItem.rightBarButtonItem?.tintColor = UIColor.white
+                    self.navigationItem.rightBarButtonItem?.isEnabled = true
+                }
+                else
+                {
+                    self.navigationItem.rightBarButtonItem?.tintColor = UIColor.clear
+                    self.navigationItem.rightBarButtonItem?.isEnabled = false
+                }
+         }
+    }
     
+    
+
+  
+//    MARK: TextField
+
+    @IBAction func itemNameField_action(_ sender: Any) {
+        self.itemChanged = true
+        self.resignFirstResponder()
+    }
     
 //    MARK:  Qty
     
@@ -182,6 +203,8 @@ updateBoxDetailsView()
         didSet {
             if qtyValue != nil {
                 self.stepper.value = Double(qtyValue!)
+                self.itemChanged = true
+
             } else {
                 self.stepper.value = 1
             }
@@ -271,9 +294,10 @@ updateBoxDetailsView()
     
     //MARK: - Image  Delegates
     
-    private func imagePickerController(_ picker: UIImagePickerController,
+     func imagePickerController(_ picker: UIImagePickerController,
                                didFinishPickingMediaWithInfo info: [String : AnyObject])
     {
+        print("Did Finish Picking Media  ")
         var  chosenImage = UIImage()
         chosenImage = info[UIImagePickerControllerOriginalImage] as! UIImage //2
         myImageView.contentMode = .scaleAspectFill //3
@@ -281,6 +305,9 @@ updateBoxDetailsView()
         blurredImage.image = chosenImage //4
         imageChanged = .newImage
         dismiss(animated:true, completion: nil) //5
+        
+        self.itemChanged = true
+
     }
     
     
@@ -298,18 +325,7 @@ updateBoxDetailsView()
 
 
 func changeFontStyle(labelName: UILabel, isPlaceholder:Bool)  {
-    enum fontChangeStyle{
-        case noImage  //keep placeholder
-        case existingImage   //don't change anything
-        case newImage   //upload new image and write URL to Firebase
-    }
-    
-//    switch <#value#> {
-//    case <#pattern#>:
-//        <#code#>
-//    default:
-//        <#code#>
-//    }
+ 
     if isPlaceholder {
         labelName.textColor = UIColor.lightGray
         
@@ -344,53 +360,183 @@ func changeFontStyle(labelName: UILabel, isPlaceholder:Bool)  {
         self.view.endEditing(true)
     
     }
+
+
+//    MARK: FIREBASE Functions
     
-     func loadPassedItem()  {
+    func loadDataFromFirebase() {
+//        var ref =  self.REF_ITEMS
+       
+        guard let passedKey = self.itemKeyPassed else {
+            /* Handle nil case */
+            return
+        }
+
+        
+//        if let passedKey = self.itemKeyPassed {
+//            ref =  self.REF_ITEMS.child(passedKey)
+//        }
+    
+
         UIApplication.shared.isNetworkActivityIndicatorVisible = true
 
-        let ref =  self.REF_ITEMS.child(self.item.itemKey)
+      let ref =  self.REF_ITEMS.child(passedKey)
+        print("load ITEM DataFromFirebase REF \(ref)")
+
         ref.observe(.value, with: { snapshot in
-                if let childSnapshotDict = snapshot.value as? Dictionary<String, AnyObject> {
-                       let item = Item(itemKey: self.item.itemKey, dictionary: childSnapshotDict)
-                    
-                    item.itemIsBoxed = true
-                    item.itemBoxNum = String(self.itemsBox.boxNumber)
-                    
-                    self.item = item
-                    self.downloadImageFromFirebase()
-                    self.title = self.item.itemName
-                    print("item: \(self.item.itemKey)")
-                    self.updateViewWithItem()
-                    UIApplication.shared.isNetworkActivityIndicatorVisible = false
+            if let childSnapshotDict = snapshot.value as? Dictionary<String, AnyObject> {
+                print("getting ItemDetails  FromFB - snapshot \(childSnapshotDict) ")
+                
+                let item = Item(itemKey: self.itemKeyPassed, dictionary: childSnapshotDict)
+                print("load ITEM From Firebase:   Item created: \(item.itemName)")
+
+                if let childSnapshotDict = snapshot.childSnapshot(forPath: "/box").value as? Dictionary<String, AnyObject> { // FIRDataSnapshot{
+                    print("load ITEM From Firebase: BOX childSnapshotDict")
+
+                    if let itemBoxNumber = childSnapshotDict["itemBoxNumber"] {
+                        print("load boxDetails:  if let itemBoxNumber")
+
+                        item.itemBoxNum = String(describing: itemBoxNumber)
                     }
-        })
-    }
-
-
-    func downloadImageFromFirebase(){
-
-        if let itemImageURL = self.item.itemImgUrl {
-            
-        
-                let ref = FIRStorage.storage().reference(forURL: itemImageURL)
-                ref.data(withMaxSize: 2 * 1024 * 1024, completion: { (data, error) in
-                    if error != nil {
-                        print("MK: Unable to download image from Firebase storage")
+                    
+                    if let itemBoxKey = childSnapshotDict["itemBoxKey"] {
+                        item.itemBoxKey = itemBoxKey as? String
+                        self.boxChangeType = .update
+                        self.loadItemBoxDetailsFromFireBase()
                     } else {
-                        print("MK: Image downloaded from Firebase storage")
-                        if let imgData = data {
-                            if let img = UIImage(data: imgData) {
-                                self.myImageView.image = img
-                                self.blurredImage.image = img
-                                self.imageChanged = .existingImage
-                            }
-                        }
+                        self.boxChangeType = .none
                     }
-                })
+
+                    if let itemIsBoxed = childSnapshotDict["itemIsBoxed"] {
+                        item.itemIsBoxed = itemIsBoxed as! Bool
+
+                    }
+                }
+                
+                self.item = item
+                
+                self.downloadImageFromFirebase()
+                
+                self.updateViewWithItem()
+                
+                self.title = self.item.itemName
+                print("item: \(self.item.itemKey)")
             }
+        })
     }
     
    
+    func downloadImageFromFirebase(){
+
+        if let itemImageURL = self.item.itemImgUrl {
+            let ref = FIRStorage.storage().reference(forURL: itemImageURL)
+            ref.data(withMaxSize: 2 * 1024 * 1024, completion: { (data, error) in
+                if error != nil {
+                    print("MK: Unable to download image from Firebase storage")
+                } else {
+                    print("MK: Image downloaded from Firebase storage")
+                    if let imgData = data {
+                        if let img = UIImage(data: imgData) {
+                            self.myImageView.image = img
+                            self.blurredImage.image = img
+                            self.imageChanged = .existingImage
+                        }
+                    }
+                }
+            })
+        }
+    }
+    
+    func loadItemBoxDetailsFromFireBase() {
+        print("loadItem BoxDetails  FromFireBase" )
+        
+        let ref = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes/\(self.item.itemBoxKey!)")
+        print("BoxRef: \(ref)")
+        
+        ref.observeSingleEvent(of: FIRDataEventType.value, with: { (itemBoxDetailsSnap) in
+            
+            if let itemBoxDetailsDict = itemBoxDetailsSnap.value as? Dictionary<String, AnyObject> {
+                let key = itemBoxDetailsSnap.key
+                
+                //             Do  Box and Item Objects agree on Box Key
+                if let itemBoxKey = self.item.itemBoxKey, itemBoxKey == key {
+                    print("itemBoxKey: \(itemBoxKey) and BoxKey \(key) ")
+                    
+                    let boxFromFireBase = Box(boxKey: key, dictionary: itemBoxDetailsDict)
+                    
+                    self.box = boxFromFireBase
+                    self.updateBoxDetailsView()
+
+                    
+                } else {
+                    
+                    print("ALERT: ITEM and BOX  have BoxKey Mismatch ")
+                    self.boxNumberHeaderLabel.text = "BOX NUMBER DOES NOT MATCH"
+                }
+            }
+        }) { (error) in
+            print("Firebase error getting iTemDetails:BoxInfo")
+            print(error.localizedDescription)
+        }
+    }
+    
+    
+    func updateFirebaseData(imgUrl: String?) {
+        print("updateFirebaseData ")
+        
+        var qtyStr: String
+        
+        if let qty = qtyValue {
+            qtyStr = "\(qty)"
+        } else {
+            qtyStr = "1"
+        }
+        
+        
+        var itemKey: String
+        
+        let ref = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/items")
+        // Generate a new push ID for the new post
+        
+        switch itemType {
+        case .new:
+            print("updateFBdata: itemType is New ")
+            let newItemRef = ref.childByAutoId()
+            itemKey = newItemRef.key
+        case .existing:
+            print("updateFBdata: itemType is existing  \(self.item.itemKey)")
+            itemKey = self.item.itemKey
+        case .boxItem:
+            print("updateFBdata: itemType is boxItem  \(self.item.itemKey)")
+            itemKey = self.item.itemKey
+            
+        }
+        
+        let itemDict: Dictionary<String, AnyObject> = [
+            "itemName" :  itemNameField.text! as AnyObject,
+            "imageUrl": imgUrl as AnyObject,
+            "itemCategory" : self.item.itemCategory  as AnyObject,
+            "itemSubcategory" : self.item.itemSubcategory as AnyObject,
+            "itemQty" : qtyStr as AnyObject, //"\(qtyValue)" as AnyObject ,
+            "itemFragile" : fragileStatus as AnyObject,
+            "itemColor": self.item.itemColor as AnyObject,
+            "/box/itemIsBoxed" : self.item.itemIsBoxed as AnyObject,
+            "/box/itemBoxKey" : self.item.itemBoxKey as AnyObject,
+            "/box/itemBoxNumber" : self.item.itemBoxNum as AnyObject
+        ]
+        
+        item.saveItemToFirebase(itemKey: itemKey, itemDict: itemDict, completion: { () -> Void in
+            
+            print("This is the completiong  ")
+            
+            print("save item to FB and then POP ")
+            popViewController()
+        })
+    } //end Firebase Data
+  
+    
+//    MARK: Update Views
+    
     func updateViewWithItem() {
         print("In the UPATE VIEW   ")
         configureExpandingMenuButton()
@@ -402,16 +548,23 @@ func changeFontStyle(labelName: UILabel, isPlaceholder:Bool)  {
 
             itemNameField.text = item.itemName
             
-            if let category = item.itemCategory, let subcat = item.itemSubcategory {
-                 itemCategory.text = category
-                    itemSubCategory.text = subcat
-            } else {
-                  self.itemCategory.text = "Not Set"
-                self.itemSubCategory.text = "Not Set"
+            if let category = item.itemCategory {
+                itemCategory.text = category
 
-                changeFontStyle(labelName: itemSubCategory, isPlaceholder: true)
-
+            }  else {
+                
+                self.itemCategory.text = "Set Category"
                 changeFontStyle(labelName: itemCategory, isPlaceholder: true)
+
+            }
+            
+            if let subcat = item.itemSubcategory {
+                itemSubCategory.text = subcat
+          
+            } else {
+            
+                self.itemSubCategory.text = nil
+                subcategoryHeading.isHidden = true
             }
             
             if let color = item.itemColor {
@@ -420,7 +573,6 @@ func changeFontStyle(labelName: UILabel, isPlaceholder:Bool)  {
             } else {
                 itemColor.text = "Not Set"
                 changeFontStyle(labelName: itemColor, isPlaceholder: true)
-
             }
             
             if let qty = item.itemQty {
@@ -440,55 +592,33 @@ func changeFontStyle(labelName: UILabel, isPlaceholder:Bool)  {
         }
    
     
-    func loadItemBoxDetailsFromFireBase() {
-         let ref = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes/\(self.itemsBox.boxKey)")
-
-        ref.observeSingleEvent(of: FIRDataEventType.value, with: { (itemBoxDetailsSnap) in
-        
-            
-        if let itemBoxDetailsDict = itemBoxDetailsSnap.value as? Dictionary<String, AnyObject> {
-            let key = itemBoxDetailsSnap.key
- 
-//             Do  Box and Item Objects agree on Box Key
-            if let itemBoxKey = self.item.itemBoxKey, itemBoxKey == key {
-                
-                let boxFromFireBase = Box(boxKey: key, dictionary: itemBoxDetailsDict)
-                self.itemsBox = boxFromFireBase
-                self.updateBoxDetailsView()
-
-            } else {
-                
-                print("ALERT: ITEM and BOX  have BoxKey Mismatch ")
-                self.boxNumberHeaderLabel.text = "BOX NUMBER DOES NOT MATCH"
-
-                    }
-            
-                }
-            }) { (error) in
-                print("Firebase error getting iTemDetails:BoxInfo")
-                print(error.localizedDescription)
-            }
-      }
-    
- 
         func updateBoxDetailsView()  {
-             if let boxNumer = self.itemsBox.boxNumber  {
+            print("update BoxDetails View ")
+
+             if let boxNumer = self.item.itemBoxNum  {
                  boxNumberHeaderLabel.text = "BOX NUMBER \(boxNumer)"
             }
             
-            if let location = self.itemsBox.boxLocationName {
+            if let location = self.box.boxLocationName {
                 print("Box Location is:  \(location) ")
-                  self.boxDetails.text = location
-            }
+                  self.boxLocationName.text = location
+            } else {
+                
+                self.boxLocationName.text =  "Location Not Set"
+                changeFontStyle(labelName: boxLocationName, isPlaceholder: true)
+             }
             
-            if let locdetails = self.itemsBox.boxLocationDetail {
-                print("Box Location locdetails are:  \(locdetails) ")
+            if let locArea = self.box.boxLocationArea {
+                print("Box Location locdetails are:  \(locArea) ")
+                self.boxLocationArea.text = locArea
 
+            } else {
+                self.boxLocationArea.text = nil
+            
             }
     }
     
-    
-    
+  
 
     @IBAction func saveItemTapped(_ sender: UIBarButtonItem) {
         UIApplication.shared.isNetworkActivityIndicatorVisible = true
@@ -532,15 +662,18 @@ print("Save Item Tapped ")
                 } else {
                     
                     var url: String!
-                    
+                    print("checkForImage - switch")
+
                     switch self.imageChanged {
                         
                     case .existingImage:
                         url = self.item.itemImgUrl
+                        print("checkForImage - existingImage")
 
                     case .newImage:
                         url = metadata?.downloadURL()?.absoluteString
-                    
+                        print("checkForImage - newImage")
+
                     case .noImage:
                         url = nil
                         print(" noImage")
@@ -557,120 +690,146 @@ print("Save Item Tapped ")
     
     
     
-    func updateFirebaseData(imgUrl: String?) {
-        print("updateFirebaseData ")
-
-        var qtyStr: String
-        
-                if let qty = qtyValue {
-                    qtyStr = "\(qty)"
-                } else {
-                    qtyStr = "1"
-                }
-        
-        
-        var itemKey: String
-        
-        let ref = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/items")
-        // Generate a new push ID for the new post
     
-        switch itemType {
-        case .new:
-            print("updateFBdata: itemType is New ")
-            let newItemRef = ref.childByAutoId()
-            itemKey = newItemRef.key
-        case .existing:
-            print("updateFBdata: itemType is existing  \(self.item.itemKey)")
-            itemKey = self.item.itemKey
-        default:
-            print("updateFBdata: itemType is Default ")
-            let newItemRef = ref.childByAutoId()
-            itemKey = newItemRef.key
+ 
+//    MARK: ExpandingMenuButton
+    fileprivate func configureExpandingMenuButton() {
+        
+        
+//        let boxButton = expandingButtonsIcons.setupExpanding()
+        
+        
+        var boxSymbol: String!
+        var editBoxAlertTitle: String
+        var editBoxAlertSub: String
+        var editBoxColor : UInt
+        
+        
+        if self.item.itemIsBoxed == true  {
+            
+            
+            boxSymbol = "boxRemoveBlue"
+            editBoxAlertTitle = "Change Box"
+            editBoxAlertSub = "Select An Option Below"
+            editBoxColor =  0xFFD110
+            
+        } else {
+            
+            
+            boxSymbol = "boxAddBlue"
+            editBoxAlertTitle = "Select Box"
+            editBoxAlertSub = "How would you like to select a Box?"
+            editBoxColor =  0x00A1FF
+            
         }
         
         
-         var itemDict: Dictionary<String, AnyObject> = [
-            "itemName" :  itemNameField.text! as AnyObject,
-            "imageUrl": imgUrl as AnyObject,
-            "itemCategory" : self.item.itemCategory  as AnyObject,
-            "itemSubcategory" : self.item.itemSubcategory as AnyObject,
-            "itemQty" : qtyStr as AnyObject, //"\(qtyValue)" as AnyObject ,
-            "itemFragile" : fragileStatus as AnyObject,
-            "itemColor": self.item.itemColor as AnyObject         ]
- 	
-    
-//        MARK:  Write Box Details to ITEM MODEL
-//        MARK: get box details from Item Model and add to Dictionary 
-         if let Tempitem = self.item {
- 
-            itemDict["box/itemIsBoxed"] = Tempitem.itemIsBoxed as AnyObject
-                
-              
+        DispatchQueue.main.async {
+            print("ItemDetails: ExpandingButtons main thread dispatch")
             
-            if let boxNumber = Tempitem.itemBoxNum{
-                itemDict["box/itemBoxNumber"] = String(boxNumber) as AnyObject
-
-            }else {
-
-                itemDict["box/itemBoxNumber"] = nil
+            let menuButtonSize: CGSize = CGSize(width: 32.0, height: 32.0)
+            
+            let menuButton = ExpandingMenuButton(frame: CGRect(origin: CGPoint.zero, size: menuButtonSize), centerImage: UIImage(named: "menuBlue")!, centerHighlightedImage: UIImage(named: "menuBlue")!)
+            menuButton.center = CGPoint(x: 30.0, y:  180.0)
+            self.view.addSubview(menuButton)
+            
+            func showAlert(_ title: String) {
+                let alert = UIAlertController(title: title, message: nil, preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: nil))
+                self.present(alert, animated: true, completion: nil)
             }
             
-            
-            
-            if let boxKey = Tempitem.itemBoxKey{
-                itemDict["box/itemBoxKey"] = boxKey as AnyObject
+            //            Edit Items QR String
+            let item1 = ExpandingMenuItem(size: menuButtonSize, title: nil, image: UIImage(named: "qrBlue")!, highlightedImage: UIImage(named: "qrBlue")!, backgroundImage: UIImage(named: "qrBlue"), backgroundHighlightedImage: UIImage(named: "qrBlue")) { () -> Void in
                 
-            }else {
-                itemDict["box/itemBoxKey"] = nil
-        }
-        
-         } else {
-            
-            print("ItemDetails: updateFirebaseData:   SELF ITEM WAS NOT CREATED ? ? ?  ")
-        }
-        
-        
-        
-        
-      //        MARK: Create Dictionary for Box Model
-
-        func addTonewBoxDict() -> Dictionary<String, AnyObject> {
-              return ["itemBoxKey": self.item.itemBoxKey as AnyObject , "itemName": self.item.itemName as AnyObject, "itemKey" : self.item.itemKey as AnyObject]
             }
-        
-        
-        
-        
-        switch boxChangeType {
-        case .add:
-            let box = Box(boxKey: self.item.itemBoxKey!)
-            box.addItemDetailsToBox(itemDict: addTonewBoxDict() )
+            
+            //            Add/Edit Photo
+            let item2 = ExpandingMenuItem(size: menuButtonSize, title: nil, image: UIImage(named: "cameraBlue")!, highlightedImage: UIImage(named: "cameraBlue")!, backgroundImage: UIImage(named: "cameraBlue"), backgroundHighlightedImage: UIImage(named: "cameraBlue")) { () -> Void in
+                //            showAlert("image")
+                self.pickImage()
+                
+            }
+            
+            //            Add/Remove iTem to Box
+            let item3 = ExpandingMenuItem(size: menuButtonSize, title: nil, image: UIImage(named: boxSymbol)!, highlightedImage: UIImage(named: boxSymbol)!, backgroundImage: UIImage(named: boxSymbol), backgroundHighlightedImage: UIImage(named: boxSymbol)) { () -> Void in
+                
+                //            showAlert("box")
+                self.showBoxChangeAlertView(title: editBoxAlertTitle, subtitle: editBoxAlertSub, color: editBoxColor)
+            }
+            
+           
 
-        case .remove:
-            self.itemsBox.removeItemDetailsFromBox(itemKey: self.item.itemKey)
-            self.item.removeBoxDetailsFromItem()
+            menuButton.addMenuItems([item1, item2, item3]) //
+            
+            menuButton.willPresentMenuItems = { (menu) -> Void in
+                //                    print("did willPresentMenuItems menu")
+                 
+            }
+            
+            menuButton.didDismissMenuItems = { (menu) -> Void in
+                //                    print("did dismiss menu")
+            }
+        }
+    }
+    
+    
+//    MARK: SCLAlertView
+    func showBoxChangeAlertView(title: String, subtitle: String, color: UInt)  {
         
-        case .update:
-            self.itemsBox.removeItemDetailsFromBox(itemKey: self.item.itemKey)
-            self.itemsBox.addItemDetailsToBox(itemDict: addTonewBoxDict() )
+        let icon = UIImage(named:"boxSearch")
+        let alert = SCLAlertView()
+        _ = alert.addButton("Scan QR") {
+            
+        }
+        
+        _ = alert.addButton("View List") {
+            self.performSegue(withIdentifier: "showBoxList", sender: self)
+            
+        }
+        
+        if self.item.itemIsBoxed == true {
+            
+            _ = alert.addButton("Remove Item From Box", backgroundColor: UIColor.red, textColor: UIColor.white) {
 
-        case .none:
-            print("")
+//                self.expandingButtonsIcons = ExpandingBoxButtonSetup.notBoxed
+
+                //                set Enum for box
+                self.boxChangeType = .remove
+                
+                
+                
+                self.boxDetailsTableCell.isHidden = true
+                self.boxDetailsTableCell.isUserInteractionEnabled = false
+                self.boxNumberHeaderLabel.text = nil
+                self.boxLocationName.text = nil
+                self.boxLocationArea.text = nil
+                
+                
+                
+                self.item.itemBoxKey = nil
+                self.item.itemBoxNum = nil
+                self.item.itemIsBoxed = false
+
+                self.configureExpandingMenuButton()
+
+                
+            }
+        } else {
+            print("ALERT: Item was never boxed- you cannot remove it  ")
         }
         
         
-        item.saveItemToFirebase(itemKey: itemKey, itemDict: itemDict, completion: { () -> Void in
-            
-            
-            print("save item to FB and then POP ")
-            popViewController()
-
-        })
- 
- 
-    } //end updateFirebaseData
+        
+        
+        DispatchQueue.main.async {
+            _ = alert.showItemAssignBox(title, subTitle: subtitle, closeButtonTitle: "Cancel", icon: icon!, colorStyle: color )
+        }
+        
+    }
+  
     
- 
+    
     
     func popViewController(){
         UIApplication.shared.isNetworkActivityIndicatorVisible = false
@@ -682,7 +841,7 @@ print("Save Item Tapped ")
     
   
     
-    
+//    MARK: ErrorAlert
     func newItemErrorAlert(_ title: String, message: String) {
         
         // Called upon Save   to let the user know Update to FB didn't work.
@@ -712,7 +871,7 @@ print("Save Item Tapped ")
             if let categorySelections = categoryDetails.category {
             
                 if let category = categorySelections.category {
-                    changeFontStyle(labelName: itemCategory, isPlaceholder: true)
+                    changeFontStyle(labelName: itemCategory, isPlaceholder: false)
 
                 self.item.itemCategory = category
                 self.itemCategory.text = category
@@ -721,8 +880,8 @@ print("Save Item Tapped ")
             
             
                 if let subcat = categorySelections.subcategory {
-                    changeFontStyle(labelName: itemSubCategory, isPlaceholder: true)
-
+                    changeFontStyle(labelName: itemSubCategory, isPlaceholder: false)
+                    subcategoryHeading.isHidden = false
                     self.item.itemSubcategory = subcat
                     self.itemSubCategory.text = subcat
                 } else {
@@ -732,8 +891,7 @@ print("Save Item Tapped ")
                 }
              
             }
-            //            Make Save Button BOLD!
-            self.updateSaveButton()
+            self.itemChanged = true
         }
     }
     
@@ -744,149 +902,28 @@ print("Save Item Tapped ")
              if let colorObject = colorVC.selectedColor,  let color = colorObject.colorName {
                 self.item.itemColor = color
                 self.itemColor.text = color.capitalized
-                changeFontStyle(labelName: itemColor, isPlaceholder: true)
+                changeFontStyle(labelName: itemColor, isPlaceholder: false)
 
 //                IDEA: should i write this to item Model too ?
 
-                    self.updateSaveButton()
+                self.itemChanged = true
 
             }
         }
     }
     
  
-    fileprivate func configureExpandingMenuButton() {
-        var boxSymbol: String!
-        var editBoxAlertTitle: String
-        var editBoxAlertSub: String
-        var editBoxColor : UInt
-        
-        if self.item.itemIsBoxed == true  {
-            
-            
-              boxSymbol = "boxRemoveBlue"
-            editBoxAlertTitle = "Change Box"
-            editBoxAlertSub = "Select An Option Below"
-            editBoxColor =  0xFFD110
-
-        } else {
-            
-             
-            boxSymbol = "boxAddBlue"
-            editBoxAlertTitle = "Select Box"
-            editBoxAlertSub = "How would you like to select a Box?"
-            editBoxColor =  0x00A1FF 
-
-        }
-        
-     
-        
-    
-        
-        DispatchQueue.main.async {
-            print("main thread dispatch")
-        
-         let menuButtonSize: CGSize = CGSize(width: 32.0, height: 32.0)
-
-        let menuButton = ExpandingMenuButton(frame: CGRect(origin: CGPoint.zero, size: menuButtonSize), centerImage: UIImage(named: "menuBlue")!, centerHighlightedImage: UIImage(named: "menuBlue")!)
-        menuButton.center = CGPoint(x: 30.0, y:  180.0)
-        self.view.addSubview(menuButton)
-        
-        func showAlert(_ title: String) {
-            let alert = UIAlertController(title: title, message: nil, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: nil))
-            self.present(alert, animated: true, completion: nil)
-        }
-        
-//            Edit Items QR String
-        let item1 = ExpandingMenuItem(size: menuButtonSize, title: nil, image: UIImage(named: "qrBlue")!, highlightedImage: UIImage(named: "qrBlue")!, backgroundImage: UIImage(named: "qrBlue"), backgroundHighlightedImage: UIImage(named: "qrBlue")) { () -> Void in
-            
-            }
-        
-//            Add/Edit Photo
-        let item2 = ExpandingMenuItem(size: menuButtonSize, title: nil, image: UIImage(named: "cameraBlue")!, highlightedImage: UIImage(named: "cameraBlue")!, backgroundImage: UIImage(named: "cameraBlue"), backgroundHighlightedImage: UIImage(named: "cameraBlue")) { () -> Void in
-//            showAlert("image")
-                self.pickImage()
-
-        }
-        
-//            Add/Remove iTem to Box
-        let item3 = ExpandingMenuItem(size: menuButtonSize, title: nil, image: UIImage(named: boxSymbol)!, highlightedImage: UIImage(named: boxSymbol)!, backgroundImage: UIImage(named: boxSymbol), backgroundHighlightedImage: UIImage(named: boxSymbol)) { () -> Void in
-//            showAlert("box")
-            self.showBoxChangeAlertView(title: editBoxAlertTitle, subtitle: editBoxAlertSub, color: editBoxColor)
-        }
-        
-        menuButton.addMenuItems([item1, item2, item3]) //
-        
-                 menuButton.willPresentMenuItems = { (menu) -> Void in
-//                    print("did willPresentMenuItems menu")
-            }
-          
-                menuButton.didDismissMenuItems = { (menu) -> Void in
-//                    print("did dismiss menu")
-            }
-        }
-    }
-    
-    
-    func showBoxChangeAlertView(title: String, subtitle: String, color: UInt)  {
-        
-        let icon = UIImage(named:"boxSearch")
-        let alert = SCLAlertView()
-        _ = alert.addButton("Scan QR") {
-            
-        }
-        
-        _ = alert.addButton("View List") {
-            self.performSegue(withIdentifier: "showBoxList", sender: self)
-
-        }
- 
-        if self.item.itemIsBoxed == true {
-            
-            _ = alert.addButton("Remove Item From Box", backgroundColor: UIColor.red, textColor: UIColor.white) {
-                
-//                 Change the save button to indicate changes have been made and not saved
-                
-//                set Enum for box
-                self.boxChangeType = .remove
-                
-                
-                
-                self.boxDetailsTableCell.isHidden = true
-                self.boxDetailsTableCell.isUserInteractionEnabled = false
-                self.boxNumberHeaderLabel.text = nil
-                self.boxDetails.text = nil
-           
-                
-                
-//                 let oldBoxKey =  self.item.itemBoxKey - dont need,this is in box object
-                self.item.itemBoxKey = nil
-                self.item.itemBoxNum = nil
-                self.item.itemIsBoxed = false
-                
-                
-                
-             }
-        } else {
-        print("ALERT: Item was never boxed- you cannot remove it  ")
-        }
-        
-
-        
-        
-        DispatchQueue.main.async {
-            _ = alert.showItemAssignBox(title, subTitle: subtitle, closeButtonTitle: "Cancel", icon: icon!, colorStyle: color )
-        }
-        
-    }
-  
     
     
     @IBAction func unwindToItemsFromQR_editingQR(_ segue:UIStoryboardSegue) {
         if let qrScannerViewController = segue.source as? qrScannerVC {
             if let scannedString =  qrScannerViewController.qrData {
                 print("Scanned STring: \(scannedString)")
+                
+                
+                self.itemChanged = true
+
+                
             }
         }
     }
@@ -899,20 +936,66 @@ print("Save Item Tapped ")
         if let boxFeedViewController = segue.source as? BoxFeedVC {
    
             if let selectedBox = boxFeedViewController.boxToPass {
+//                self.boxChangeType = .add
+                self.box = selectedBox
                 
                 
-//                Add it to the Item Object
-                self.item.itemIsBoxed = true
-                self.item.itemBoxNum = String(selectedBox.boxNumber)
-                self.item.itemBoxKey = selectedBox.boxKey
+                self.changeBox()
+                
+                self.configureExpandingMenuButton()
+                
+////                Add it to the Item Object - i did this in the items function, in changebox()
+//                self.item.itemIsBoxed = true
+//                self.item.itemBoxNum = String(selectedBox.boxNumber)
+//                self.item.itemBoxKey = selectedBox.boxKey
              
-                self.updateSaveButton()
-            }
+             }
         }
  
     }
  
-    
+    func changeBox(){
+        
+        
+        //        MARK:  Write Box Details to ITEM MODEL
+        //        MARK: get box details from Item Model and add to Dictionary
+       
+        
+        
+        
+        //        MARK: Create Dictionary for Box Model
+        
+        func addTonewBoxDict() -> Dictionary<String, AnyObject> {
+            return ["itemBoxKey": self.box.boxKey as AnyObject , "itemName": self.item.itemName as AnyObject, "itemKey" : self.item.itemKey as AnyObject]
+        }
+        
+        
+        
+        print("ItemDetails:  switch boxChange type: \(boxChangeType)")
+        
+        switch boxChangeType {
+        case .add:
+            self.box.addItemDetailsToBox(itemDict: addTonewBoxDict() )
+            self.item.addBoxDetailsToItem(box: self.box)
+
+        case .remove:
+            self.box.removeItemDetailsFromBox(itemKey: self.item.itemKey)
+            self.item.removeBoxDetailsFromItem()
+            
+        case .update:
+            self.box.removeItemDetailsFromBox(itemKey: self.item.itemKey)
+            self.box.addItemDetailsToBox(itemDict: addTonewBoxDict() )
+            self.item.addBoxDetailsToItem(box: self.box) //adds to itemModel and firebase
+
+        case .none:
+            print("")
+        }
+        
+        
+        
+        
+        
+    }
     
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -941,7 +1024,23 @@ print("Save Item Tapped ")
             }
         }
     
-    
+    func fadeViewInThenOut(view : UIView, delay: TimeInterval) {
+        
+        let animationDuration = 0.25
+        
+        // Fade in the view
+        UIView.animate(withDuration: animationDuration, animations: { () -> Void in
+            view.alpha = 1
+        }) { (Bool) -> Void in
+            
+            // After the animation completes, fade out the view after a delay
+            
+            UIView.animate(withDuration: animationDuration, delay: delay, options: .curveEaseInOut, animations: { () -> Void in
+                view.alpha = 0
+            },
+                                       completion: nil)
+        }
+    }
 
 }
 

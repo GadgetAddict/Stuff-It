@@ -6,7 +6,6 @@ PODS:
     - Bolts/Tasks
   - Bolts/Tasks (1.8.4)
   - DZNEmptyDataSet (1.8.1)
-  - ExpandingMenu (0.3.1)
   - FBSDKCoreKit (4.16.0):
     - Bolts (~> 1.7)
   - FBSDKLoginKit (4.16.1):
@@ -52,7 +51,6 @@ PODS:
 
 DEPENDENCIES:
   - DZNEmptyDataSet
-  - ExpandingMenu
   - FBSDKLoginKit
   - Firebase/Auth
   - Firebase/Core
@@ -63,7 +61,6 @@ DEPENDENCIES:
 SPEC CHECKSUMS:
   Bolts: 8a7995239dbe724f9cba2248b766d48b7ebdd322
   DZNEmptyDataSet: 9525833b9e68ac21c30253e1d3d7076cc828eaa7
-  ExpandingMenu: 107548f3cb8c04b28a8b6b436983f506849484cc
   FBSDKCoreKit: 7a6baaed4a2b2a244ba253346713bdbc74df135b
   FBSDKLoginKit: 469a56cebe2e1ed62b1621d0b155970fd6aac2d8
   Firebase: be473484f0d515e72ffd04acf22f981773c23e58
@@ -79,6 +76,6 @@ SPEC CHECKSUMS:
   GoogleUtilities: 8bbc733218aad26306f9d4a253823986110e3358
   QRCode: a249ed747aeb0f4bf5f9c58b5b001b6b3bc80073
 
-PODFILE CHECKSUM: f31c85f04ff32cb8d69c5005c1efeb0fd4471394
+PODFILE CHECKSUM: d2993388d1b99fcbdb46308bef0276db7037b3ea
 
 COCOAPODS: 1.1.1

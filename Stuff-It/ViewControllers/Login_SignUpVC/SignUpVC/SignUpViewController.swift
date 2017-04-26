@@ -123,12 +123,12 @@ func completeSignIn(id: String, userData: Dictionary<String, String>) {
                                 [  "inventoryName": self.nickNameField.text!,
                                    "collectionId" : newCollectionRef.key]])
     
-    createDefaultStatuses()
+    createDefaultProperties()
     
     self.performSegue(withIdentifier: "SIGNED_UP", sender:nil)
     }
     
-    func createDefaultStatuses()  {
+    func createDefaultProperties()  {
         let defaultStatuses = ["Empty", "Packed", "In Use", "Stored"]
         
         for i in defaultStatuses {
@@ -137,6 +137,11 @@ func completeSignIn(id: String, userData: Dictionary<String, String>) {
             let status = ["statusName": i]
             REF_STATUS.setValue(status)
         }
+        let REF_Category = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/categories").childByAutoId()
+        
+        let cat = ["category": "Un-Categorized"]
+        REF_Category.setValue(cat)
+
         
     }
 

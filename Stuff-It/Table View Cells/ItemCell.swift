@@ -15,7 +15,7 @@ class ItemCell: UITableViewCell, UINavigationControllerDelegate {
     
      
        
-    var item: Item!
+     var item: Item!
  
     @IBOutlet weak var nameLbl: UILabel!
     @IBOutlet weak var categoryLbl: UILabel!
@@ -24,7 +24,6 @@ class ItemCell: UITableViewCell, UINavigationControllerDelegate {
     @IBOutlet weak var boxNumberLbl: UILabel!
     @IBOutlet weak var imgFragile: UIImageView!
     @IBOutlet weak var qty: UILabel!
-    @IBOutlet weak var boxNumberScanBtnLbl: UIButton!
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -55,13 +54,13 @@ class ItemCell: UITableViewCell, UINavigationControllerDelegate {
         self.nameLbl.text = item.itemName.capitalized
         
         if let category = item.itemCategory {
-            self.categoryLbl.text = "\(category.capitalized):  "
+            self.categoryLbl.text = category.capitalized
         } else {
             self.categoryLbl.text = nil
         }
         
         if let subcategory = item.itemSubcategory {
-            self.subCategoryLbl.text = subcategory.capitalized
+            self.subCategoryLbl.text = ": \(subcategory.capitalized)"
         } else {
             self.subCategoryLbl.text = nil
         }

@@ -15,6 +15,6 @@ pod 'FBSDKLoginKit'
 pod 'FBSDKLoginKit'
 pod 'DZNEmptyDataSet'
 pod "QRCode", "~> 0.5"
-pod 'ExpandingMenu'
+
 
 end

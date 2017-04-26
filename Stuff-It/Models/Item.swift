@@ -23,6 +23,10 @@ class Item  {
     private var _itemSubcategory: String?
     private var _itemBoxNum: String?
     private var _itemBoxKey: String?
+    private var _itemBoxLocationName: String?
+    private var _itemBoxLocationArea: String?
+    private var _itemBoxLocationDetail: String?
+
     private var _itemIsBoxed: Bool!
     private var _itemQty: String?
     private var _itemFragile: Bool!
@@ -36,14 +40,6 @@ class Item  {
         return _itemKey
     }
     
-    var itemColor: String? {
-        get {
-            return _itemColor
-        }
-        set {
-            _itemColor = newValue
-        }
-    }
     
     var itemName: String {
         return _itemName
@@ -59,6 +55,16 @@ class Item  {
     }
     
     
+    var itemColor: String? {
+        get {
+            return _itemColor
+        }
+        set {
+            _itemColor = newValue
+        }
+    }
+    
+    
     var itemCategory: String? {
          get {
             return _itemCategory
@@ -67,6 +73,7 @@ class Item  {
             _itemCategory = newValue
         }
     }
+    
     
     var itemSubcategory: String? {
         get {
@@ -107,6 +114,37 @@ class Item  {
             _itemBoxKey = newValue
         }
     }
+    
+    var itemBoxLocationName: String? {
+        
+        get {
+            return _itemBoxLocationName
+        }
+        set {
+            _itemBoxLocationName = newValue
+        }
+    }
+    
+    var itemBoxLocationArea: String? {
+        
+        get {
+            return _itemBoxLocationArea
+        }
+        set {
+            _itemBoxLocationArea = newValue
+        }
+    }
+    
+    var itemBoxLocationDetail: String? {
+        
+        get {
+            return _itemBoxLocationDetail
+        }
+        set {
+            _itemBoxLocationDetail = newValue
+        }
+    }
+    
     
     
     var itemQty: String! {
@@ -217,8 +255,7 @@ class Item  {
     
     func removeBoxDetailsFromItem()  {
         print("  removeBoxDetailsFromItem")
-//        _itemRef.child("box").removeValue()
-      
+       
             _itemRef.child("box").setValue([
           
             "itemIsBoxed" : false
@@ -228,14 +265,19 @@ class Item  {
     }
 
 
-    func AddBoxDetailsToItem(box: Box) {
-        print("  AddBoxDetailsToItem - The Item REF is : \(_itemRef.child("box"))")
+    func addBoxDetailsToItem(box: Box) {
+        print("  AddBoxDetailsToItem in Firebase - The Item REF is : \(_itemRef.child("box"))")
 
         _itemRef.child("box").setValue([
         "itemBoxKey" : box.boxKey,
         "itemBoxNumber" : String(box.boxNumber),
         "itemIsBoxed" : true
         ])
+        print("  Add BoxDetails ToItem MODEL")
+
+        self.itemBoxNum = String(box.boxNumber)
+        self.itemIsBoxed = true
+        self.itemBoxKey = box.boxKey
         
     
     }
@@ -243,7 +285,7 @@ class Item  {
  
     
     func saveItemToFirebase(itemKey: String, itemDict:Dictionary<String, AnyObject>, completion: () -> ()) {
-        print("Item Methods: saveItemToFirebase ")
+        print("Item Methods: saveItemToFirebase FUNC")
 
         let ref = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/items/\(itemKey)")
 
@@ -256,7 +298,7 @@ class Item  {
              
             }
         })
-    
+    print("Completion should hpapen next ")
         completion()
     }
 
@@ -269,6 +311,10 @@ class Item  {
     
     
 }
+
+
+
+
 
 /*
 backup

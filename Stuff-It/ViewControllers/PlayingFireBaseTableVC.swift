@@ -21,29 +21,79 @@ class PlayingFireBaseTableVC: UITableViewController {
     
     var REF_ITEMS = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/items")
 
+    var theKey: String!
     
     
         override func viewDidLoad() {
             super.viewDidLoad()
             
+            
             tableView.tableFooterView = UIView()
             tableView.tableFooterView = UIView(frame: CGRect.zero)
             
-            
+            getNextNewBoxNumber() { (newBoxNumber) -> Void in
+                print("returned NewBoxNumber is \(newBoxNumber ) ")
+                
+            }
+
 //            tableView.delegate = self
 //            tableView.dataSource = self
             
             
             
-                     loadDataFromFirebase()
+//                     loadDataFromFirebase()
             
            }   // End ViewDidLoad
             
-       
+    
+    
+    var REF_BOXES = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes")
+    func getNextNewBoxNumber( withCompletionHandler:(Int) -> Void) {
+        print("getNextNewBoxNumber")
         
+        //        ALERT: Can this be changed to gaurds ?
+        //        self.REF_BOXES.observeSingleEvent(of: .value, with: { (boxExistsSnapshot) in
+        //               if boxExistsSnapshot.exists() {
+        //                print("boxExistsSnapshot exists ")
+        var newBoxNumber = 12
+        self.REF_BOXES.queryOrdered(byChild: "boxNum").queryLimited(toLast: 1).observeSingleEvent(of: .childAdded, with: { (snapshot) in
+            print("observeSingleEvent")
+            
+            if let boxSnapshot = snapshot.value as? Dictionary<String, AnyObject> {
+                print(" if let boxSnapshot = snapshot.value")
+                
+                if let boxNum = boxSnapshot["boxNum"] as? Int   {
+                    
+                     newBoxNumber = (boxNum + 1)
+                    print("if let boxNum = boxSnapshot \(newBoxNumber)")
+                    self.getMyNumbrer(myNumber: "\(newBoxNumber)")
+                    //                            } else {
+                    //                                print("boxNum does NOT equal boxSnapshot[boxNum] as? Int")
+                    //                            }
+                    //                        } else {
+                    //                            print("boxSnapshot is NOT  snapshot.value as dict")
+                    //                            }}
+                    //                }) { (error) in
+                    //                    print("query has error \(error)")
+                    //                }
+                    
+                    
+                //        }) { (noBoxError) in
+                //            print("There was no box: \(noBoxError)")
+                //        }
+                }
+            }
+        })
+        print("call withCompletionHandler")
+        withCompletionHandler(newBoxNumber)
         
-        
-//        
+
+    }
+    
+    func getMyNumbrer(myNumber: String) {
+        print("My number \(myNumber)")
+    }
+    //
 //        func writeToFb(enteredText: String) {
 //            print("I'm in postToFirebase")
 //            

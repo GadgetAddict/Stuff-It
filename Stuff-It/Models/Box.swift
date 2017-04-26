@@ -26,9 +26,7 @@ class Box  {
   
     var boxItemCount: Int?
     
-    var boxKey: String {
-        return _boxKey
-    }
+    
     
     var boxQR: String? {
         return _boxQR
@@ -83,7 +81,15 @@ class Box  {
         }
     }
     
-
+    var boxKey: String {
+     
+        get {
+            return _boxKey
+        }
+        set {
+            _boxKey = newValue
+        }
+    }
     
     
     
@@ -120,9 +126,17 @@ class Box  {
     }
     
     
-    init (boxKey: String){
-        self._boxKey = boxKey
-         _boxRef = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes/\(boxKey)")
+    init (boxKey: String, boxNumber: Int?){
+        
+       
+            self._boxKey = boxKey
+        
+        
+        if let number = boxNumber {
+            self._boxNumber = number
+        }
+        
+          _boxRef = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes/\(boxKey)")
     }
     
     
@@ -196,28 +210,33 @@ class Box  {
         } else {
             print("One or more of the optionals don’t contain a value")
         }
-
     }
     
-    
+ 
+
     func saveBoxToFirebase(boxKey: String, boxDict:Dictionary<String, AnyObject>, completion: () -> ()) {
         
         let ref = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes/\(boxKey)")
-        
-        //        let updatedItemData = ["\(itemKey)": itemDict]  as [String : Any]
-        
-        
         ref.updateChildValues(boxDict, withCompletionBlock: { (error, ref) -> Void in
             if ((error) != nil) {
                 print("Error updating data: \(String(describing: error?.localizedDescription))")
-                
             }
         })
-        
         completion()
     }
+    
+  func getBoxNumber() {
+    let REF_BOXES = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes")
+    self._boxNumber = 1
+        REF_BOXES.queryOrdered(byChild: "boxNum").queryLimited(toLast: 1).observeSingleEvent(of: .childAdded, with: { (snapshot) in
+            if let boxSnapshot = snapshot.value as? Dictionary<String, AnyObject> {
+                if let boxNum = boxSnapshot["boxNum"] as? Int   {
+                    let newBoxNumber = (boxNum + 1)
+                    self._boxNumber = newBoxNumber
+                }
+            }
+        })
+    }
 
-    
-    
 } // class
- 
+

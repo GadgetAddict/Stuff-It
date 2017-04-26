@@ -122,8 +122,8 @@ class ColorTableVC: UITableViewController {
             REF_COLOR.setValue(color)
             
             //                self.dismiss(animated: true, completion: {})
-            
-        }
+            self.loadDataFromFirebase()
+    }
         
         
         
@@ -135,7 +135,8 @@ class ColorTableVC: UITableViewController {
             
             //         REF_STATUS.queryOrdered(byChild: "statusName").observe(.value, with: { snapshot in
             
-            self.REF_COLOR.observe(.value, with: { snapshot in
+            self.REF_COLOR.observeSingleEvent(of: .value, with: { snapshot in
+//            self.REF_COLOR.observe(.value, with: { snapshot in
                 
                 self.colors = []
                 if let snapshots = snapshot.children.allObjects as? [FIRDataSnapshot] {

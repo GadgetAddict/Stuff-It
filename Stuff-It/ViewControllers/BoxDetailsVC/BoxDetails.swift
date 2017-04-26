@@ -23,6 +23,8 @@ class BoxDetails: UITableViewController,UIImagePickerControllerDelegate , UINavi
 
     var REF_BOXES = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes")
     var box: Box!
+    var location: Location!
+    
     var boxSegueType: SegueType = .new
     var boxNumber: Int?
     var boxQR:  String?
@@ -42,17 +44,62 @@ class BoxDetails: UITableViewController,UIImagePickerControllerDelegate , UINavi
     @IBOutlet weak var BoxContentsCell: UITableViewCell!
     var query = (child: "boxNum", value: "")
 
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        tableView.tableFooterView = UIView()
+        tableView.tableFooterView = UIView(frame: CGRect.zero)
+        hideLocationLabels()
+        
+        
+        switch boxSegueType {
+        case .new:
+            let newBoxRef = self.REF_BOXES.childByAutoId()
+            self.box = Box(boxKey: newBoxRef.key, boxNumber: nil)
+            self.box.getBoxNumber()
+            
+              boxContentsCellActive(boxIsNew: true)
+        default:
+            boxContentsCellActive(boxIsNew: false)
+            
+            loadBoxData()
+            
+        }
+        
+        
+        
+        
+    }
+
+    func navTitle() {
+        let label = UILabel(frame: CGRect(x:0, y:0, width:300, height:50))
+        label.backgroundColor = UIColor.clear
+        label.font = UIFont(name: "PingFang SC Light", size: 24)
+        label.textAlignment = .center
+        label.textColor = UIColor.white
+        
+        if boxSegueType == .new {
+            label.numberOfLines = 2
+            label.text = "New Box\nNo. \(self.box.boxNumber!)"
+ 
+        } else {
+            label.numberOfLines = 1
+            label.text = "Box No. \(self.box.boxNumber!)"
+
+        }
+        self.navigationItem.titleView = label
+    }
     
-    var boxCategory:String! {
+    var boxCategory = "Un-Categorized" {
         didSet {
             boxCategoryLabel.text? = boxCategory.capitalized
             }
         }
         
         
-    var boxStatus:String? = nil {
+    var boxStatus:String = "Empty" {
         didSet {
-            boxStatusLabel.text? = boxStatus!
+            boxStatusLabel.text? = boxStatus
  
             } 
         }
@@ -68,7 +115,7 @@ class BoxDetails: UITableViewController,UIImagePickerControllerDelegate , UINavi
         didSet {
             boxLocationLabel.text? = boxLocation!
             print("boxLocation was set to  \(boxLocation!)")
-
+            self.location = Location(name: boxLocation, detail: nil, area: nil)
         }
     }
     
@@ -78,6 +125,7 @@ class BoxDetails: UITableViewController,UIImagePickerControllerDelegate , UINavi
             boxLocationAreaLabel.isHidden = false
             boxLocationAreaLabel.text? = boxLocationArea!
             print("boxLocationArea was set to  \(boxLocationArea!)")
+            location.locationArea = boxLocationArea
 
         }
     }
@@ -88,34 +136,11 @@ class BoxDetails: UITableViewController,UIImagePickerControllerDelegate , UINavi
             boxLocationDetailLabel.isHidden = false
             boxLocationDetailLabel.text? = boxLocationDetail!
             print("boxLocationLabel was set to  \(boxLocationDetail!)")
+            location.locationDetail = boxLocationDetail
 
         }
     }
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-  
-        hideLocationLabels()
-        
-        
-        switch boxSegueType {
-        case .new:
-            self.box = Box()
-            
-             boxContentsCellActive(boxIsNew: true)
-        default:
-            boxContentsCellActive(boxIsNew: false)
-            
-            loadBoxData()
-
-            }
-        
-   
-        tableView.tableFooterView = UIView()
-        tableView.tableFooterView = UIView(frame: CGRect.zero)
-        
-    
-        }
     
     func hideLocationLabels() {
         areaHeader.isHidden = true
@@ -142,10 +167,13 @@ class BoxDetails: UITableViewController,UIImagePickerControllerDelegate , UINavi
     func loadBoxData(){
 
         if let boxTitle = box.boxName {
+            print("Box Title \(String(describing: box.boxName )) ")
             self.title = boxTitle.capitalized
             boxNameLabel.text = boxTitle.capitalized
         } else {
-            self.title = "Box \(box.boxNumber)"
+            print("goto NAVTITLE ")
+            navTitle()
+//            self.title = "Box \(box.boxNumber)"
 
         }
         
@@ -182,26 +210,7 @@ class BoxDetails: UITableViewController,UIImagePickerControllerDelegate , UINavi
     func checkForEmptyFields() {
         print("checkForEmptyFields")
 
-        
-        
-        guard  boxStatusLabel.text != "Set Status" else {
-            let errMsg = "Status is Required "
-            newBoxErrorAlert("Ut oh...", message: errMsg)
-            return
-        }
-        
-        guard  boxCategoryLabel.text != "Set Category" else {
-            let errMsg = "Category is Required "
-            newBoxErrorAlert("Ut oh...", message: errMsg)
-            return
-        }
-        
-        guard  boxStatusLabel.text != "Set Status" else {
-            let errMsg = "Status is Required "
-            newBoxErrorAlert("Ut oh...", message: errMsg)
-            return
-        }
-        
+ 
         self.createBoxDictionary() { (key, dict) -> Void in
         
         self.box.saveBoxToFirebase(boxKey: key, boxDict: dict, completion: { () -> Void in
@@ -220,32 +229,27 @@ class BoxDetails: UITableViewController,UIImagePickerControllerDelegate , UINavi
     
     
     func createBoxDictionary(withCompletionHandler:(String, Dictionary<String, AnyObject>) -> Void) {
- 
-        print("createBoxDictionary")
-
-   
-
+         print("createBoxDictionary")
        let _ =  EZLoadingActivity.show("Saving", disableUI: true)
  
-       
+//        let boxKey = self.box.boxKey
+//        let newBoxNumber = self.box.boxNumber
         
-                var boxDict: Dictionary<String, AnyObject> = [
+                let boxDict: Dictionary<String, AnyObject> = [
                     "name" : boxNameLabel.text?.capitalized as AnyObject,
                     "fragile": false as AnyObject,
                     "stackable" : true as AnyObject,
                     "boxCategory" : boxCategory as AnyObject,
 //                    "boxQR" : boxQrString as AnyObject,
-//                    "boxNum" : self.boxNumber as AnyObject,
+                     "boxNum" : self.box.boxNumber as AnyObject,
                     "location" : boxLocation as AnyObject ,
                     "location_area" : boxLocationArea  as AnyObject,
                     "location_detail" : boxLocationDetail as AnyObject,
                     "status": boxStatus as AnyObject,
                     "color": boxColor as AnyObject
-
                 ]
-
         
-        var boxKey: String
+    /*    var boxKey: String
         
         switch boxSegueType {
         case .new:
@@ -262,8 +266,9 @@ class BoxDetails: UITableViewController,UIImagePickerControllerDelegate , UINavi
              boxKey = self.box.boxKey
         }
 
+      */
         
-     withCompletionHandler(boxKey, boxDict)
+     withCompletionHandler(self.box.boxKey, boxDict)
  
     }
     
@@ -291,51 +296,26 @@ class BoxDetails: UITableViewController,UIImagePickerControllerDelegate , UINavi
 //    print(snapshot)
 //    })
 //    
+    /*
  
     func getNextNewBoxNumber( withCompletionHandler:(Int) -> Void) {
         var newBoxNumber = 1
         print("getNextNewBoxNumber")
-        
-//        ALERT: Can this be changed to gaurds ?
-        self.REF_BOXES.observeSingleEvent(of: .value, with: { (boxExistsSnapshot) in
-//               if boxExistsSnapshot.exists() {
-//                print("boxExistsSnapshot exists ")
-
                 self.REF_BOXES.queryOrdered(byChild: "boxNum").queryLimited(toLast: 1).observeSingleEvent(of: .childAdded, with: { (snapshot) in
                     print("observeSingleEvent")
-
                         if let boxSnapshot = snapshot.value as? Dictionary<String, AnyObject> {
                             print(" if let boxSnapshot = snapshot.value")
-
                                 if let boxNum = boxSnapshot["boxNum"] as? Int   {
-                                print("if let boxNum = boxSnapshot")
+                                    newBoxNumber = (boxNum + 1)
+                                        print("if let boxNum = boxSnapshot \(newBoxNumber)")
 
-                                newBoxNumber = (boxNum + 1)
-//                            } else {
-//                                print("boxNum does NOT equal boxSnapshot[boxNum] as? Int")
-//                            }
-//                        } else {
-//                            print("boxSnapshot is NOT  snapshot.value as dict")
-                            }}
-                }) { (error) in
-                    print("query has error \(error)")
-                }
-            
-//            } else {
-//                newBoxNumber = 1
-//                print("self.boxNumber = 1, now createBoxDict")
-//            }
-        
-        }) { (noBoxError) in
-            print("There was no box: \(noBoxError)")
-        }
-        print("call withCompletionHandler")
+            }
 
-        withCompletionHandler(newBoxNumber)
+                    }
+        })
+    
     }
-    
-
-    
+    */
     
     func newBoxErrorAlert(_ title: String, message: String) {
         
@@ -381,7 +361,7 @@ class BoxDetails: UITableViewController,UIImagePickerControllerDelegate , UINavi
 
         
         if let locationDetails = segue.source as? LocationDetailsVC {
-            if let location = locationDetails.selectedBoxLocation {
+            if let location = locationDetails.location {
 //                print(" Locations name... \(location.locationName!)")
 
                 if let boxLoc = location.locationName {
@@ -403,7 +383,7 @@ class BoxDetails: UITableViewController,UIImagePickerControllerDelegate , UINavi
     @IBAction func unwindToBoxDetailsWithStatus(_ segue:UIStoryboardSegue) {
         if let statusVC = segue.source as? BoxStatusTableVC {
             self.boxStatus = (statusVC.selecteStatus?.statusName)!
-            print("STATUS that came back is \(self.boxStatus ?? "none")")
+            print("STATUS that came back is \(self.boxStatus)")
         }
     }
     
@@ -443,9 +423,8 @@ class BoxDetails: UITableViewController,UIImagePickerControllerDelegate , UINavi
         } else {
             if self.boxSegueType == .existing {
               if let boxLocations = segue.destination as?  LocationDetailsVC {
-                let boxLocationToPass = Box(location: box.boxLocationName, area: box.boxLocationArea, detail: box.boxLocationDetail)
                 boxLocations.passedALocation = true
-                boxLocations.passedBoxLocation = boxLocationToPass
+                boxLocations.location = self.location
                 }
             }
         }

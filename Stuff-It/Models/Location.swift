@@ -10,14 +10,42 @@ import UIKit
 
 struct Location {
     var locationKey: String!
-    var locationName: String!
-    var locationDetail: String?
-    var locationArea: String?
+    var _locationName: String!
+    var _locationDetail: String?
+    var _locationArea: String?
+    
+    var locationName: String! {
+        get {
+            return _locationName
+        }
+        set{
+            _locationName = newValue
+        }
+    }
+    
+    var locationArea: String? {
+        get {
+            return _locationArea
+        }
+        set{
+            _locationArea = newValue
+        }
+    }
+    
+    var locationDetail: String? {
+        get {
+            return _locationDetail
+        }
+        set{
+            _locationDetail = newValue
+        }
+    }
+    
     
     init(name: String!, detail: String?, area: String?) {
-        self.locationName = name
-        self.locationDetail = detail
-        self.locationArea = area
+        self._locationName = name
+        self._locationDetail = detail
+        self._locationArea = area
     }
     
     
@@ -25,15 +53,15 @@ struct Location {
         self.locationKey = locationKey
         
         if let locationName = dictionary["name"] as? String {
-            self.locationName = locationName
+            self._locationName = locationName
         }
         
         if let locationDetail = dictionary["detail"] as? String {
-            self.locationDetail = locationDetail
+            self._locationDetail = locationDetail
         }
         
         if let locationArea = dictionary["area"] as? String {
-            self.locationArea = locationArea
+            self._locationArea = locationArea
         }
         
     }

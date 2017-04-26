@@ -44,24 +44,46 @@ open class ExpandingMenuButton: UIView, UIGestureRecognizerDelegate {
         }
     }
     
-    open var expandingSoundPath: String = Bundle(url: Bundle(for: ExpandingMenuButton.classForCoder()).url(forResource: "ExpandingMenu", withExtension: "bundle")!)?.path(forResource: "expanding", ofType: "caf") ?? "" {
+    open var expandingSoundPath: String = Bundle.main.path(forResource: "expanding", ofType: "caf") ?? "" {
         didSet {
             self.configureSounds()
         }
     }
     
-    open var foldSoundPath: String = Bundle(url: Bundle(for: ExpandingMenuButton.classForCoder()).url(forResource: "ExpandingMenu", withExtension: "bundle")!)?.path(forResource: "fold", ofType: "caf") ?? "" {
+    open var selectedSoundPath: String = Bundle.main.path(forResource: "selected", ofType: "caf") ?? "" {
         didSet {
             self.configureSounds()
         }
     }
     
-    open var selectedSoundPath: String = Bundle(url: Bundle(for: ExpandingMenuButton.classForCoder()).url(forResource: "ExpandingMenu", withExtension: "bundle")!)?.path(forResource: "selected", ofType: "caf") ?? "" {
+    open var foldSoundPath: String = Bundle.main.path(forResource: "fold", ofType: "caf") ?? "" {
         didSet {
             self.configureSounds()
         }
     }
     
+    
+//    
+//    open var expandingSoundPath: String = Bundle(url: Bundle(for: ExpandingMenuButton.classForCoder()).url(forResource: "ExpandingMenu", withExtension: "bundle")!)?.path(forResource: "expanding", ofType: "caf") ?? "" {
+//        didSet {
+//            self.configureSounds()
+//        }
+//    }
+//    
+// 
+//
+//    open var foldSoundPath: String = Bundle(url: Bundle(for: ExpandingMenuButton.classForCoder()).url(forResource: "ExpandingMenu", withExtension: "bundle")!)?.path(forResource: "fold", ofType: "caf") ?? "" {
+//        didSet {
+//            self.configureSounds()
+//        }
+//    }
+//    
+//    open var selectedSoundPath: String = Bundle(url: Bundle(for: ExpandingMenuButton.classForCoder()).url(forResource: "ExpandingMenu", withExtension: "bundle")!)?.path(forResource: "selected", ofType: "caf") ?? "" {
+//        didSet {
+//            self.configureSounds()
+//        }
+//    }
+//    
     open var bottomViewColor: UIColor = UIColor.clear {
         didSet {
             self.bottomView.backgroundColor = bottomViewColor

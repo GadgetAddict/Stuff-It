@@ -22,12 +22,40 @@ let kDefaultAnimationDuration = 2.0
 
 class PlayingAroundViewController: UIViewController {
  
-        override func viewDidLoad() {
-            super.viewDidLoad()
-            getColor()
+    
+            @IBOutlet weak var label: UILabel!
+            
+            var counter = 0
+            
+            override func viewDidLoad() {
+                super.viewDidLoad()
+                // Do any additional setup after loading the view, typically from a nib.
+                
+                let timer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: Selector("animate"), userInfo: nil, repeats: true)
+                timer.fire()
+            }
+            
+            override func didReceiveMemoryWarning() {
+                super.didReceiveMemoryWarning()
+                // Dispose of any resources that can be recreated.
+            }
+            
+            func animate() {
+                UIView.transition(with: label,
+                                          duration: 1.0,
+                                          options: [.curveEaseInOut],
+                                          animations: { () -> Void in
+                                            self.counter += 1
+                                            self.label.text = "\(self.counter)"
+                }, completion: nil)
+                
+            }
+    }
+
+//            getColor()
             // Do any additional setup after loading the view, typically from a nib.
-        }
-        
+
+/*
         override func didReceiveMemoryWarning() {
             super.didReceiveMemoryWarning()
             // Dispose of any resources that can be recreated.
@@ -61,9 +89,7 @@ class PlayingAroundViewController: UIViewController {
         
     }
     
-        @IBAction func showInfo(_ sender: AnyObject) {
-            _ = SCLAlertView().showInfo(kInfoTitle, subTitle: kSubtitle)
-        }
+ 
         
         @IBAction func showEdit(_ sender: AnyObject) {
             let appearance = SCLAlertView.SCLAppearance(showCloseButton: true)
@@ -189,4 +215,4 @@ class PlayingAroundViewController: UIViewController {
         }
     }
 
- 
+ */

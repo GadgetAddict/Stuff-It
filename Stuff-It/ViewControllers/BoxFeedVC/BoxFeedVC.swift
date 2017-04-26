@@ -21,17 +21,14 @@ enum BoxLoadType{
 
 
 class BoxFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmptyDataSetSource, DZNEmptyDataSetDelegate {
+
+    var selectedBox:String?      
     
-    
-  //  internal func cellTapped(cell: BoxCell) {    -- not used anymore  ?
-        //        self.showAlertForRow(row: tableView.indexPath(for: cell)!.row)
-   // }
     
     var FbHandle: UInt!   // set to remove observer when viewDisappears
     var REF_BOXES: FIRDatabaseReference!
     var boxes = [Box]()
     lazy var itemIndexPath: NSIndexPath? = nil
-//    var showBoxByCategory: String?   - not used ?
     var boxLoadType: BoxLoadType = .all
     var boxToPass: Box!
     var itemPassed: Item!
@@ -52,17 +49,14 @@ class BoxFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpty
         self.tableView.emptyDataSetSource = self
         self.tableView.emptyDataSetDelegate = self
         
-        
         tableView.tableFooterView = UIView()
         tableView.tableFooterView = UIView(frame: CGRect.zero)
-        
-        
         
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        loadBoxes()
+         loadBoxes()
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -77,12 +71,8 @@ class BoxFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpty
     func loadBoxes(){
         
         UIApplication.shared.isNetworkActivityIndicatorVisible = true
-        
-        
+
         self.REF_BOXES = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes")
-        
-        
-        
         
         
         switch boxLoadType {
@@ -113,6 +103,8 @@ class BoxFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpty
             
             
         default:
+            
+//            MARK: on query, get only boxes that do not already have item assigned
             self.navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Cancel", style: .plain, target: self, action: #selector(cancelButtonTapped))
             
             if let category = self.itemPassed.itemCategory {
@@ -123,7 +115,7 @@ class BoxFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpty
             }
             
             if let passedItemCurrBox = self.itemPassed.itemBoxNum {
-
+                print("passed curr box boxNum \(passedItemCurrBox) ")
             }
             
         }
@@ -138,18 +130,19 @@ class BoxFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpty
                     print("Box Feed Snap: \(snap)")
                     if let boxDict = snap.value as? Dictionary<String, AnyObject> {
                         let key = snap.key
-                        
-                        let countItemsREF = self.REF_BOXES.child(key).child("items")
+                        if self.selectedBox != key {
+                         let countItemsREF = self.REF_BOXES.child(key).child("items")
                         countItemsREF.observe(.value, with: { (itemCountSnapshot) in
                             
                             let theCount = itemCountSnapshot.childrenCount
                             
                             let box = Box(boxKey: key, dictionary: boxDict)
                             box.boxItemCount = Int(theCount)
-                            
+                          
+                          
                             self.boxes.append(box)
                             
-                            
+                             
                             
                             self.tableView.reloadData()
                         })
@@ -157,6 +150,7 @@ class BoxFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpty
                 }
                 
             }
+        }
         })
         
         UIApplication.shared.isNetworkActivityIndicatorVisible = false
@@ -247,7 +241,9 @@ class BoxFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpty
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if let cell  = tableView.dequeueReusableCell(withIdentifier: "BoxCell") as? BoxCell {
-                     
+            
+         
+            
             let box = boxes[indexPath.row]
             cell.configureCell(box: box)
             
@@ -339,47 +335,9 @@ class BoxFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpty
         
         deleteAction.backgroundColor = UIColor.red
         
-        //            let addToBoxAction = UITableViewRowAction(style: UITableViewRowActionStyle.normal, title: "\u{1f4e6}\n Box", handler: { (action: UITableViewRowAction, indexPath: IndexPath) -> Void in
-        //                let boxMenu = UIAlertController(title: nil, message: "Add Item to Box", preferredStyle: UIAlertControllerStyle.actionSheet)
-        //                let ScanAction = UIAlertAction(title: "Scan QR", style: .default, handler: self.scanForBox)
-        //                let PickAction = UIAlertAction(title: "Choose from List", style: .default, handler: self.pickForBox)
-        //                let CancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: self.cancelDeleteItem)
-        //                boxMenu.addAction(ScanAction)
-        //                boxMenu.addAction(PickAction)
-        //                boxMenu.addAction(CancelAction)
-        //
-        //                self.present(boxMenu, animated: true, completion: nil)
-        //            })
-        //            addToBoxAction.backgroundColor = UIColor.brown
-        
-        return [deleteAction ]
-        
+        return [deleteAction]
+       
     }
-    
-    
-    
-    
-    
-    
-    // Add To Box Method Confirmation and Handling
-    //        func addToBoxMethod(item: String) {
-    //            let alert = UIAlertController(title: "Add Item to Box", message: "Choose a method to locate the desired Box.", preferredStyle: .actionSheet)
-    //
-    //            let ScanAction = UIAlertAction(title: "Scan QR", style: .default, handler: scanForBox)
-    //            let PickAction = UIAlertAction(title: "Choose from List", style: .default, handler: pickForBox)
-    //            let CancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: cancelDeleteItem)
-    //
-    //            alert.addAction(ScanAction)
-    //            alert.addAction(PickAction)
-    //            alert.addAction(CancelAction)
-    //
-    //
-    //            self.present(alert, animated: true, completion: nil)
-    //        }
-    //
-    
-    
-    
     
     func handleDeleteItem(alertAction: UIAlertAction!) -> Void {
         print("IN THE DELETE FUNCTION")
@@ -401,38 +359,6 @@ class BoxFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpty
         itemIndexPath = nil
     }
     
-    
-    func showAlertForRow(row: Int) {
-        // add item to box by scanning or by picking a number from table view
-        
-        //            let dict = boxes[row]
-        //            let boxNumber = dict.boxNumber
-        //
-        //
-        //            //ActionSheet to ask user to scan or choose
-        //            let alertController = UIAlertController(title: "Add \(item) to Box", message: "", preferredStyle: UIAlertControllerStyle.actionSheet)
-        //
-        //            let qrScanAction = UIAlertAction(title: "Scan Box QR", style: UIAlertActionStyle.default, handler: {(alert :UIAlertAction) in
-        //                print("Scan QR button tapped")
-        //                self.performSegue(withIdentifier: "toScanQR", sender: nil)
-        //
-        //
-        //            })
-        //            alertController.addAction(qrScanAction)
-        //
-        //            let showBoxListAction = UIAlertAction(title: "Pick from List of Boxes", style: UIAlertActionStyle.default, handler: {(alert :UIAlertAction) in
-        //                print("show List button tapped")
-        //
-        //            })
-        //            alertController.addAction(showBoxListAction)
-        //
-        //            let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: {(alert :UIAlertAction) in
-        //                print("Cancel button tapped")
-        //            })
-        //            alertController.addAction(cancelAction)
-        //
-        //            present(alertController, animated: true, completion: nil)
-    }
     
     
     
