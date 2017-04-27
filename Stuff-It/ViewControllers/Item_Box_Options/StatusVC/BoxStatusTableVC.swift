@@ -307,5 +307,6 @@ class BoxStatusTableVC: UITableViewController, UINavigationControllerDelegate,DZ
     }
     
     
+    var curPage = "Status"
     
 }

@@ -175,8 +175,17 @@ class Item  {
         }
     }
 
-    init(itemBoxed: Bool, itemCategory: String?) {
-        self._itemIsBoxed = itemBoxed
+    init(itemKey: String?, itemBoxed: Bool?, itemCategory: String?) {
+       
+        if let key = itemKey {
+           self._itemKey = key
+        _itemRef = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/items/\(key)")
+
+        }
+        
+        if let isBoxed = itemBoxed {
+            self._itemIsBoxed = isBoxed
+        }
         
         if let category = itemCategory {
             self._itemCategory = category
@@ -254,11 +263,9 @@ class Item  {
     
     
     func removeBoxDetailsFromItem()  {
-        print("  removeBoxDetailsFromItem")
-       
-            _itemRef.child("box").setValue([
-          
-            "itemIsBoxed" : false
+        print("From: \(self.curPage) ->  REMOVING THE ITEM ")
+              _itemRef.child("box").setValue([
+                "itemIsBoxed" : false
             ])
 
         
@@ -285,13 +292,13 @@ class Item  {
  
     
     func saveItemToFirebase(itemKey: String, itemDict:Dictionary<String, AnyObject>, completion: () -> ()) {
-        print("Item Methods: saveItemToFirebase FUNC")
+        print("Item Model: saveItemToFirebase FUNC")
 
         let ref = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/items/\(itemKey)")
 
 //        let updatedItemData = ["\(itemKey)": itemDict]  as [String : Any]
     
-
+print("From: \(curPage) -> itemSaving should be \(itemKey)  ")
         ref.updateChildValues(itemDict, withCompletionBlock: { (error, ref) -> Void in
             if ((error) != nil) {
                 print("Error updating data: \(String(describing: error?.localizedDescription))")
@@ -305,7 +312,7 @@ class Item  {
         
         
    
-    
+    var curPage = "Item Model"
         
     
     

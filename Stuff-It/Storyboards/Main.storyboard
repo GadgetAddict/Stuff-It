@@ -1518,7 +1518,7 @@
                         <barButtonItem key="rightBarButtonItem" title="Save" id="eFd-hR-5cr">
                             <color key="tintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                             <connections>
-                                <action selector="saveItemTapped:" destination="QLc-bg-hiw" id="P3f-h1-q2e"/>
+                                <action selector="saveItemTapped:" destination="QLc-bg-hiw" id="gfq-zs-q7h"/>
                             </connections>
                         </barButtonItem>
                     </navigationItem>
@@ -1528,6 +1528,7 @@
                         <outlet property="boxLocationArea" destination="a4q-3K-gO2" id="Rqh-fd-j4L"/>
                         <outlet property="boxLocationName" destination="JIS-Y2-ywp" id="lQ3-S4-jt2"/>
                         <outlet property="boxNumberHeaderLabel" destination="XvA-UF-az4" id="OhT-Bi-yCN"/>
+                        <outlet property="cancelItemButton" destination="6bl-Br-tOT" id="wvN-C4-U9X"/>
                         <outlet property="fragileSwitch" destination="TZJ-Ee-PUs" id="fhG-hm-dOl"/>
                         <outlet property="itemCategory" destination="BJH-st-ufR" id="udb-d9-I0d"/>
                         <outlet property="itemColor" destination="nkv-qd-wDt" id="jW2-XH-Xdq"/>
@@ -2711,7 +2712,6 @@
                         <barButtonItem key="rightBarButtonItem" title="Add Items" id="VAf-ED-gPw">
                             <color key="tintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                             <connections>
-                                <action selector="addToBoxBtn:" destination="QGY-bx-tNQ" id="uXB-um-qBI"/>
                                 <segue destination="q6J-C7-pJ0" kind="show" identifier="addToBox" id="Zs7-jE-445"/>
                             </connections>
                         </barButtonItem>
@@ -3086,10 +3086,10 @@
         <image name="whiteGlass" width="33" height="33"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="cM7-cw-jXo"/>
-        <segue reference="G9A-Hj-gZH"/>
-        <segue reference="PNH-dW-2Xa"/>
-        <segue reference="sX4-Io-a79"/>
         <segue reference="eJv-Wj-kkh"/>
+        <segue reference="bVD-OA-uSM"/>
+        <segue reference="G9A-Hj-gZH"/>
+        <segue reference="cM7-cw-jXo"/>
+        <segue reference="Y0Y-ag-CxJ"/>
     </inferredMetricsTieBreakers>
 </document>

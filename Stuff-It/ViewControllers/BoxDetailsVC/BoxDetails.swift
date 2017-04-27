@@ -431,5 +431,5 @@ class BoxDetails: UITableViewController,UIImagePickerControllerDelegate , UINavi
         
     }
 
-    
+        var curPage = "BoxDetails"
 }

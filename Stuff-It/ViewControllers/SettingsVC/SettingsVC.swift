@@ -120,7 +120,9 @@ class SettingsVC: UITableViewController {
                 }
         }
         }
-    }
+        
+        var curPage = "SettingsVC"
+}
     
     
 //     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {

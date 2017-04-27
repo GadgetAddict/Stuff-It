@@ -27,12 +27,13 @@ class BoxFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpty
     
     var FbHandle: UInt!   // set to remove observer when viewDisappears
     var REF_BOXES: FIRDatabaseReference!
+
     var boxes = [Box]()
     lazy var itemIndexPath: NSIndexPath? = nil
     var boxLoadType: BoxLoadType = .all
     var boxToPass: Box!
     var itemPassed: Item!
-    var boxesREF: FIRDatabaseQuery?
+    var boxesREF: FIRDatabaseQuery!
 //    var query = (child: "boxNum", value: "")     //haven't set up boxFeed QR search query yet
     
     @IBAction func CreateNewBoxBtn(_ sender: Any) {
@@ -52,11 +53,14 @@ class BoxFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpty
         tableView.tableFooterView = UIView()
         tableView.tableFooterView = UIView(frame: CGRect.zero)
         
+        print("From: \(self.curPage) -> BoxLoadType  \(boxLoadType) ")
+
     }
     
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-         loadBoxes()
+    override func viewWillAppear(_ animated: Bool) {
+         super.viewWillAppear(animated)
+        
+        loadBoxes()
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -76,90 +80,65 @@ class BoxFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpty
         
         
         switch boxLoadType {
+            
         case .all:
-            
-            //            MARK: Create UIBarButtonItems
-//            let addBtn = UIButton(frame: CGRect(x: 0, y: 0, width: 22, height: 22))
-//            addBtn.setImage(UIImage(named: "Plus 2 Math_60"), for: UIControlState.normal)
-//            let newACtion = "newBox"
-//            addBtn.addTarget(self, action: Selector(newACtion), for:  UIControlEvents.touchUpInside)
-//            let rightItem = UIBarButtonItem(customView: addBtn)
-//            self.navigationItem.rightBarButtonItem = rightItem
-//            
-//            
-//            let searchBtn = UIButton(frame: CGRect(x: 0, y: 0, width: 22, height: 22))
-//            searchBtn.setImage(UIImage(named: "Search_50"), for: UIControlState.normal)
-//            let searchAction = "searchTapped"
-//            searchBtn.addTarget(self, action: Selector(searchAction), for:  UIControlEvents.touchUpInside)
-//            let leftItem = UIBarButtonItem(customView: searchBtn)
-//            self.navigationItem.leftBarButtonItem = leftItem
-
             boxesREF = self.REF_BOXES
-            
             
         case .query:
             print("Query")
 //            boxesREF = (self.REF_BOXES.child(query.child).queryEqual(toValue: query.value))
-            
-            
+      
         default:
+            print("From: \(self.curPage)loadBoxes SWITCH ->    DEFAULT ")
             
-//            MARK: on query, get only boxes that do not already have item assigned
+            // Set Title and UIBARBUTTONS
             self.navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Cancel", style: .plain, target: self, action: #selector(cancelButtonTapped))
             
             if let category = self.itemPassed.itemCategory {
                 self.title = "\(category.capitalized) Boxes"
-
-                boxesREF = REF_BOXES.queryOrdered(byChild: "boxCategory").queryEqual(toValue: category)
+                
+                // Set BOX REF 
+                
+               self.boxesREF = REF_BOXES.queryOrdered(byChild: "boxCategory").queryEqual(toValue: category)
                 
             }
-            
-            if let passedItemCurrBox = self.itemPassed.itemBoxNum {
-                print("passed curr box boxNum \(passedItemCurrBox) ")
-            }
-            
         }
+
+        UIApplication.shared.isNetworkActivityIndicatorVisible = true
         
-        
-        boxesREF!.observe(.value, with: {(snapshot)  in
+        boxesREF.observe(.value, with: { snapshot in
             self.boxes = [] // THIS IS THE NEW LINE
             
-            
-            if let snapshot = snapshot.children.allObjects as? [FIRDataSnapshot] {
-                for snap in snapshot {
-                    print("Box Feed Snap: \(snap)")
+            if let snapshots = snapshot.children.allObjects as? [FIRDataSnapshot] {
+                for snap in snapshots {
+                    print("boxFeed Snap: \(snap)")
                     if let boxDict = snap.value as? Dictionary<String, AnyObject> {
                         let key = snap.key
-                        if self.selectedBox != key {
-                         let countItemsREF = self.REF_BOXES.child(key).child("items")
-                        countItemsREF.observe(.value, with: { (itemCountSnapshot) in
-                            
-                            let theCount = itemCountSnapshot.childrenCount
-                            
-                            let box = Box(boxKey: key, dictionary: boxDict)
-                            box.boxItemCount = Int(theCount)
-                          
-                          
-                            self.boxes.append(box)
-                            
-                             
-                            
-                            self.tableView.reloadData()
-                        })
+                        let box = Box(boxKey: key, dictionary: boxDict)
+                      
+                        box.boxItemsKeys = []
+                        
+                        let cSnap = snap.childSnapshot(forPath: "items")
+                              if let itemSnap = cSnap.children.allObjects as? [FIRDataSnapshot] {
+                        print("From: \(self.curPage) ->  itemSnap \(itemSnap) ")
+                                let itemsCount = itemSnap.count
+                                   box.boxItemCount = Int(itemsCount)
+
+                                 for snap in itemSnap {
+                                    let itemKey = snap.key
+                                        box.boxItemsKeys?.append(itemKey)
+                            }
+                        }
+                        self.boxes.append(box)
                     }
                 }
-                
             }
-        }
+            self.tableView.reloadData()
+            UIApplication.shared.isNetworkActivityIndicatorVisible = false
         })
-        
-        UIApplication.shared.isNetworkActivityIndicatorVisible = false
-        
     }
     
-    func newBox()  {
-        performSegue(withIdentifier: "newBox_SEGUE", sender: self)
-    }
+    
     
     func searchTapped() {
         print("boxQR_SEGUE BUTTON TAPPED ")
@@ -340,26 +319,50 @@ class BoxFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpty
     }
     
     func handleDeleteItem(alertAction: UIAlertAction!) -> Void {
-        print("IN THE DELETE FUNCTION")
-        if let indexPath = itemIndexPath {
+         if let indexPath = itemIndexPath {
             
-            tableView.beginUpdates()
-            let boxObject  = boxes[indexPath.row]
-            let boxKey = boxObject.boxKey
-            self.REF_BOXES.child(boxKey).removeValue()
+        let boxObject  = boxes[indexPath.row]
             itemIndexPath = nil
-            tableView.endUpdates()
+            self.tableView.reloadData()
+        let boxKey = boxObject.boxKey
             
+          self.removeItemsFromDeletedBox(box: boxObject, completion: {
+            print("From: \(self.curPage) -> Completionhandler  TIME TO DELETE The Box ")
+            self.REF_BOXES.child(boxKey).removeValue()
+            
+          })
+            print("From: \(self.curPage) ->  out of the completion handler ")
+       
         }
-        
     }
     
     
     func cancelDeleteItem(alertAction: UIAlertAction!) {
         itemIndexPath = nil
+        self.tableView.isEditing = false
+
     }
     
+    func removeItemsFromDeletedBox(box: Box, completion: () -> ()) {
+        if let itemKeys = box.boxItemsKeys {
+            print("From: \(self.curPage) ->  IF LET ITEMKEYS  ")
+             for key in itemKeys {
+                print("From: \(self.curPage) ->  LOOP - \(key) ")
+                 let item = Item(itemKey: key, itemBoxed: nil, itemCategory: nil)
+                item.removeBoxDetailsFromItem()
+            }
+        }
+       
+
+         completion()
+        
+    }
     
+    func completionFunction(completion: () -> ()) {
+        
+        completion()
+        
+    }
     
     
     
@@ -407,6 +410,7 @@ class BoxFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpty
         
     }
     
-}//itemFeedVC
+        var curPage = "BoxFeed"
+}//BoxFeedVC
 
 

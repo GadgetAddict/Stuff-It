@@ -434,7 +434,8 @@ func editButtonPressed(){
 //
                 }
             }
-            
+        var curPage = "LocationPicker"
+
         }
 
         

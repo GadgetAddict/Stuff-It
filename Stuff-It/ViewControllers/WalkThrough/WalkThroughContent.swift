@@ -55,4 +55,6 @@ class WalkThroughContentViewController: UIViewController {
             
         }
     }
+
+    var curPage = "WalkThroughContent"
 }

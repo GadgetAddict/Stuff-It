@@ -292,5 +292,6 @@ class LocationDetailsVC: UITableViewController {
     
     
 
+    var curPage = "LocationDetails"
 
 }

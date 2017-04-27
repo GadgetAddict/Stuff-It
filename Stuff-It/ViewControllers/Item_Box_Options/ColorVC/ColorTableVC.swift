@@ -334,6 +334,7 @@ class ColorTableVC: UITableViewController {
 //            }
 //        }
 //        
-    
+    var curPage = "ColorTable"
+
 }  //End Class
 

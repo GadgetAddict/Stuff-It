@@ -83,11 +83,7 @@ class itemFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpt
         self.tableView.emptyDataSetSource = self
        self.tableView.emptyDataSetDelegate = self
 
-        
-//        let when = DispatchTime.now() + 0 // change  to desired number of seconds
-//        DispatchQueue.main.asyncAfter(deadline: when) {
-//            self.loadItems()
-//        }
+ 
    
 //        let addBtn = UIButton(frame: CGRect(x: 0, y: 0, width: 60, height: 60))
 //        addBtn.setImage(UIImage(named: "Plus 2 Math_60"), for: UIControlState.normal)
@@ -134,13 +130,14 @@ class itemFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpt
                             item.itemIsBoxed = itemIsBoxed as! Bool
                         }
                         self.items.append(item)
+
                     }
                 }
             }
-            UIApplication.shared.isNetworkActivityIndicatorVisible = false
-
-            
             self.tableView.reloadData()
+
+            UIApplication.shared.isNetworkActivityIndicatorVisible = false
+            
              })
         
     }
@@ -356,6 +353,7 @@ class itemFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpt
         
         deleteAction.backgroundColor = UIColor.red
         
+        
         let addToBoxAction = UITableViewRowAction(style: UITableViewRowActionStyle.normal, title: "\u{1f4e6}\n Box", handler: { (action: UITableViewRowAction, indexPath: IndexPath) -> Void in
             let boxMenu = UIAlertController(title: nil, message: "Add Item to Box", preferredStyle: UIAlertControllerStyle.actionSheet)
             let ScanAction = UIAlertAction(title: "Scan QR", style: .default, handler: self.scanForBox)
@@ -400,13 +398,16 @@ class itemFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpt
     
     func handleDeleteItem(alertAction: UIAlertAction!) -> Void {
          if let indexPath = itemIndexPath {
-             tableView.beginUpdates()
+//             tableView.beginUpdates()
             let itemObject  = items[indexPath.row]
+//            print("From: \(self.curPage) ->  get itemobjec: \(itemObject.itemName)   boxKey: \(itemObject.itemBoxKey) ")
+
+            let box = Box(boxKey: itemObject.itemBoxKey!, boxNumber: nil)
+            box.removeItemDetailsFromBox(itemKey: itemObject.itemKey)
             let itemKey = itemObject.itemKey
             self.REF_ITEMS.child(itemKey).removeValue()
             itemIndexPath = nil
-            itemIndexPath = nil
-            tableView.endUpdates()
+            tableView.reloadData()
     
         }
     }
@@ -543,6 +544,7 @@ class itemFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpt
         }
     }
     
+    var curPage = "itemFeedVC"
 
 }//itemFeedVC
 

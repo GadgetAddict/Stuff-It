@@ -23,13 +23,19 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
     var categoryType = CategoryType.category
     var categorySelection: CategorySelection = .item
     var categoryIndexPath: NSIndexPath? = nil
-    
-    
-    
-    
-    
     var REF_CATEGORY: FIRDatabaseReference!
     
+   
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated) // No need for semicolon
+    
+        self.REF_CATEGORY = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/categories/\(categoryType.rawValue)")
+        
+        loadDataFromFirebase()
+
+    }
+    
+ 
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -37,24 +43,10 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
         
         tableView.tableFooterView = UIView()
         tableView.tableFooterView = UIView(frame: CGRect.zero)
-    
-        
-//        let defaults = UserDefaults.standard
-//        
-//        if (defaults.object(forKey: "CollectionIdRef") != nil) {
-//            print("Category PIcker: Getting Defaults")
-//            
-//            if let collectionId = defaults.string(forKey: "CollectionIdRef") {
-//                self.collectionID = collectionId
-//            }
-//        }
-        
-        self.REF_CATEGORY = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/categories/\(categoryType.rawValue)")
-        
-        loadDataFromFirebase()
-        
+ 
     }// End ViewDidLoad
-
+    
+    
     func setupPage() {
         
         
@@ -65,11 +57,9 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
         case .subcategory:
             self.title = "Subcategories"
 
-            
         }
         
         switch categorySelection {
-
         case .item:
          print("This is the ITEMS Category selection")
         case .box:
@@ -79,9 +69,7 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
             if categoryType == .subcategory {
                 tableView.allowsSelection = false
             }
-            
         }
-        
     }
     
     
@@ -106,10 +94,8 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
     }
     
     
-//    MARK: DNZ Empty Table View 
-    
-    
-    
+//    MARK: DNZ Empty Table View    DZNEmptyDataSetSource, DZNEmptyDataSetDelegate
+        
     func image(forEmptyDataSet scrollView: UIScrollView!) -> UIImage! {
         return UIImage(named: "package")
     }
@@ -479,6 +465,7 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
         
     }
     
+    var curPage = "CategoryPicker"
 }
 
 

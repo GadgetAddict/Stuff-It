@@ -180,5 +180,5 @@ class CategoryDetailsVC: UITableViewController {
     
     
     
-    
+    var curPage = "CategoryDetails"
 }

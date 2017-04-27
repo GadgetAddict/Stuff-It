@@ -9,6 +9,13 @@
 import Foundation
 import Firebase
 
+class BoxedItems: Item {
+
+    
+    
+}
+
+
 class Box  {
     private var _boxKey: String!
     private var _boxNumber: Int!
@@ -25,7 +32,7 @@ class Box  {
     private var _boxRef: FIRDatabaseReference!
   
     var boxItemCount: Int?
-    
+    var boxItemsKeys: [String]?
     
     
     var boxQR: String? {
@@ -107,19 +114,7 @@ class Box  {
     }
  
     
-    
-    
-  /*  init(number: String, fragile: Bool, stackable: Bool,  category: String,  description: String, located : String, locDetail: String, locArea : String) {
-        self._boxNumber = boxNumber
-        self._boxFragile = fragile
-        self._boxStackable = stackable
-        self._boxCategory = category
-        self._boxName = description
-        self._boxLocationName = located
-        self._boxLocationDetail = locDetail
-        self._boxLocationArea = locArea
-    }
-    */
+ 
     
     init() {
         
@@ -192,6 +187,7 @@ class Box  {
      }
  
     func removeItemDetailsFromBox(itemKey: String)  {
+        print("removeItemDetailsFromBox")
          _boxRef.child("items/\(itemKey)").removeValue()
  
     }

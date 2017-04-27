@@ -25,12 +25,19 @@ enum ImageStatus{
 enum BoxChangeType{
 //    when save button pressed - what actions need to be taken with the item and box models
     case none, add, update, remove
- 
-    
+    mutating func next() {
+        switch self {
+        case .none:
+            self = .add
+        default:
+            print("")
+        }
+    }
 }
 
-
-
+ 
+ 
+ 
 class ItemDetailsVC: UITableViewController,UIImagePickerControllerDelegate , UINavigationControllerDelegate, UITextFieldDelegate {
     
 
@@ -42,7 +49,8 @@ class ItemDetailsVC: UITableViewController,UIImagePickerControllerDelegate , UIN
     
     var item: Item!
     var box: Box!
-    
+    var REF_BOX = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes")
+
     var REF_ITEMS = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/items")
     var collectionId: String!
     
@@ -61,15 +69,20 @@ class ItemDetailsVC: UITableViewController,UIImagePickerControllerDelegate , UIN
     @IBOutlet weak var subcategoryHeading: UILabel!
   
     @IBOutlet weak var saveItemButton: UIBarButtonItem!
+    @IBOutlet weak var cancelItemButton: UIBarButtonItem!
  
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        self.REF_ITEMS.removeAllObservers()
+//        print("From: \(curPage) ->  Remove All Observers ")
+//        self.REF_ITEMS.removeAllObservers()
+//        self.REF_BOX.removeAllObservers()
+
     }
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
+print("From: \(self.curPage) ->  VIEW DID LOAD ")
         itemChanged = false
 
         createNumPadToolbar()
@@ -78,42 +91,32 @@ class ItemDetailsVC: UITableViewController,UIImagePickerControllerDelegate , UIN
         tableView.tableFooterView = UIView(frame: CGRect.zero)
 
         switch itemType {
-
+            
         case .boxItem:
-            print("I am from BoxItem= was passed itemKey: \(self.item.itemKey)")
-
             
-//            boxContents Segue should have set self.box object
+            self.item = Item(itemKey: itemKeyPassed, itemBoxed: true, itemCategory: nil)
             
- 
-            
-                loadDataFromFirebase()
+            loadDataFromFirebase()
             
             boxChangeType = .update
             boxDetailsTableCell.isHidden = false
             boxDetailsTableCell.isUserInteractionEnabled = true
-
+            
         case .existing:
             
+            self.item = Item(itemKey: itemKeyPassed, itemBoxed: nil, itemCategory: nil)
             loadDataFromFirebase()
-//
-//            if let _ = self.item.itemBoxKey {
-//                boxChangeType = .update
-//            } else {
-//                boxChangeType = .none
-//            }
-    
+            
+            
         case .new:
-            self.item = Item(itemBoxed: false, itemCategory: "Un-Categorized")
+            self.item = Item(itemKey: nil, itemBoxed: false, itemCategory: "Un-Categorized")
             boxDetailsTableCell.isHidden = true
             boxDetailsTableCell.isUserInteractionEnabled = false
             self.title = "New Item"
-  
+            
             configureExpandingMenuButton()
-
-         }
-     
-
+            
+        }
         
         
         // Image Picker Setup
@@ -160,16 +163,24 @@ class ItemDetailsVC: UITableViewController,UIImagePickerControllerDelegate , UIN
  
     var itemChanged: Bool! {
         didSet {
-        print("itemChanged Did Set ")
                 if itemChanged == true
                 {
-                    print("itemChanged - Should be True ")
-                     self.saveItemButton.title = "Save"
-                    self.navigationItem.rightBarButtonItem?.tintColor = UIColor.white
-                    self.navigationItem.rightBarButtonItem?.isEnabled = true
-                }
-                else
-                {
+                    
+                    self.navigationItem.rightBarButtonItem?.setTitleTextAttributes([
+                        NSFontAttributeName : UIFont.boldSystemFont(ofSize: 18.0)],
+                                                     for: UIControlState.normal)
+                    
+                    
+                 
+                        
+                    self.saveItemButton.title = "Save"
+                    self.cancelItemButton.title = "Cancel"
+                      self.navigationItem.rightBarButtonItem?.tintColor = UIColor.white
+                     self.navigationItem.rightBarButtonItem?.isEnabled = true
+                
+               } else {
+                    self.cancelItemButton.title = "Done"
+ 
                     self.navigationItem.rightBarButtonItem?.tintColor = UIColor.clear
                     self.navigationItem.rightBarButtonItem?.isEnabled = false
                 }
@@ -177,7 +188,9 @@ class ItemDetailsVC: UITableViewController,UIImagePickerControllerDelegate , UIN
     }
     
     
-
+    
+   
+ 
   
 //    MARK: TextField
 
@@ -365,60 +378,55 @@ func changeFontStyle(labelName: UILabel, isPlaceholder:Bool)  {
 //    MARK: FIREBASE Functions
     
     func loadDataFromFirebase() {
-//        var ref =  self.REF_ITEMS
-       
-        guard let passedKey = self.itemKeyPassed else {
-            /* Handle nil case */
-            return
-        }
-
-        
-//        if let passedKey = self.itemKeyPassed {
-//            ref =  self.REF_ITEMS.child(passedKey)
-//        }
-    
+      let ref =  self.REF_ITEMS.child(self.item.itemKey)
+ 
+    print("From: \(curPage) ->  loadDataFromFirebase :\(ref)")
 
         UIApplication.shared.isNetworkActivityIndicatorVisible = true
 
-      let ref =  self.REF_ITEMS.child(passedKey)
-        print("load ITEM DataFromFirebase REF \(ref)")
+        
 
         ref.observe(.value, with: { snapshot in
-            if let childSnapshotDict = snapshot.value as? Dictionary<String, AnyObject> {
-                print("getting ItemDetails  FromFB - snapshot \(childSnapshotDict) ")
+            if let itemSnapshotDict = snapshot.value as? Dictionary<String, AnyObject> {
+                print("getting ItemDetails  FromFB - snapshot \(itemSnapshotDict.values) ")
                 
-                let item = Item(itemKey: self.itemKeyPassed, dictionary: childSnapshotDict)
+                let item = Item(itemKey: self.itemKeyPassed, dictionary: itemSnapshotDict)
                 print("load ITEM From Firebase:   Item created: \(item.itemName)")
+                self.item = item
 
-                if let childSnapshotDict = snapshot.childSnapshot(forPath: "/box").value as? Dictionary<String, AnyObject> { // FIRDataSnapshot{
-                    print("load ITEM From Firebase: BOX childSnapshotDict")
+                if let itemBoxSnapshotDict = snapshot.childSnapshot(forPath: "/box").value as? Dictionary<String, AnyObject> { // FIRDataSnapshot{
+                    print("load ITEM From Firebase: BOX itemBoxSnapshotDict")
 
-                    if let itemBoxNumber = childSnapshotDict["itemBoxNumber"] {
+                    if let itemBoxNumber = itemBoxSnapshotDict["itemBoxNumber"] {
                         print("load boxDetails:  if let itemBoxNumber")
 
-                        item.itemBoxNum = String(describing: itemBoxNumber)
+                        self.item.itemBoxNum = String(describing: itemBoxNumber)
                     }
                     
-                    if let itemBoxKey = childSnapshotDict["itemBoxKey"] {
-                        item.itemBoxKey = itemBoxKey as? String
+                    if let itemBoxKey = itemBoxSnapshotDict["itemBoxKey"] {
+                        self.item.itemBoxKey = itemBoxKey as? String
+                       self.REF_BOX =   self.REF_BOX.child("\(String(describing: itemBoxKey))")
                         self.boxChangeType = .update
+                        print("From: \(self.curPage) ->  Just changed BoxChangeType to \(self.boxChangeType) ")
+
                         self.loadItemBoxDetailsFromFireBase()
                     } else {
                         self.boxChangeType = .none
+                        print("From: \(self.curPage) ->  Just changed BoxChangeType to \(self.boxChangeType) ")
+
                     }
 
-                    if let itemIsBoxed = childSnapshotDict["itemIsBoxed"] {
-                        item.itemIsBoxed = itemIsBoxed as! Bool
+                    if let itemIsBoxed = itemBoxSnapshotDict["itemIsBoxed"] {
+                        self.item.itemIsBoxed = itemIsBoxed as! Bool
 
                     }
                 }
                 
-                self.item = item
                 
                 self.downloadImageFromFirebase()
                 
                 self.updateViewWithItem()
-                
+                UIApplication.shared.isNetworkActivityIndicatorVisible = false
                 self.title = self.item.itemName
                 print("item: \(self.item.itemKey)")
             }
@@ -440,6 +448,8 @@ func changeFontStyle(labelName: UILabel, isPlaceholder:Bool)  {
                             self.myImageView.image = img
                             self.blurredImage.image = img
                             self.imageChanged = .existingImage
+                            UIApplication.shared.isNetworkActivityIndicatorVisible = false
+
                         }
                     }
                 }
@@ -448,13 +458,12 @@ func changeFontStyle(labelName: UILabel, isPlaceholder:Bool)  {
     }
     
     func loadItemBoxDetailsFromFireBase() {
-        print("loadItem BoxDetails  FromFireBase" )
+        print("From: \(curPage) ->  loadItemBoxDetails")
+         print("From: \(curPage) ->  BoxREF is :\(self.REF_BOX)")
         
-        let ref = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes/\(self.item.itemBoxKey!)")
-        print("BoxRef: \(ref)")
-        
-        ref.observeSingleEvent(of: FIRDataEventType.value, with: { (itemBoxDetailsSnap) in
-            
+//        ref.observeSingleEvent(of: FIRDataEventType.value, with: { (itemBoxDetailsSnap) in
+            self.REF_BOX.observe(.value, with: { (itemBoxDetailsSnap) in
+         
             if let itemBoxDetailsDict = itemBoxDetailsSnap.value as? Dictionary<String, AnyObject> {
                 let key = itemBoxDetailsSnap.key
                 
@@ -482,8 +491,9 @@ func changeFontStyle(labelName: UILabel, isPlaceholder:Bool)  {
     
     
     func updateFirebaseData(imgUrl: String?) {
-        print("updateFirebaseData ")
-        
+print("From: \(curPage) ->  updateFirebaseData ")
+        let _ = EZLoadingActivity.show("Saving", disableUI: true)
+
         var qtyStr: String
         
         if let qty = qtyValue {
@@ -531,6 +541,7 @@ func changeFontStyle(labelName: UILabel, isPlaceholder:Bool)  {
             
             print("save item to FB and then POP ")
             popViewController()
+        UIApplication.shared.isNetworkActivityIndicatorVisible = false
         })
     } //end Firebase Data
   
@@ -630,7 +641,6 @@ print("Save Item Tapped ")
     func checkForEmptyFields() {
         print("checkForEmptyFields ")
 
-        let _ = EZLoadingActivity.show("Saving", disableUI: true)
 
         guard  itemNameField.text != "" else {
             let errMsg = "Item name is Required "
@@ -796,6 +806,7 @@ print("Save Item Tapped ")
 
                 //                set Enum for box
                 self.boxChangeType = .remove
+                print("From: \(self.curPage) ->  Just changed BoxChangeType to \(self.boxChangeType) ")
                 
                 
                 
@@ -805,18 +816,16 @@ print("Save Item Tapped ")
                 self.boxLocationName.text = nil
                 self.boxLocationArea.text = nil
                 
+                self.changeBox()
                 
-                
-                self.item.itemBoxKey = nil
-                self.item.itemBoxNum = nil
-                self.item.itemIsBoxed = false
+//                self.item.itemBoxKey = nil
+//                self.item.itemBoxNum = nil
+//                self.item.itemIsBoxed = false
 
                 self.configureExpandingMenuButton()
 
                 
             }
-        } else {
-            print("ALERT: Item was never boxed- you cannot remove it  ")
         }
         
         
@@ -872,7 +881,7 @@ print("Save Item Tapped ")
             
                 if let category = categorySelections.category {
                     changeFontStyle(labelName: itemCategory, isPlaceholder: false)
-
+                    
                 self.item.itemCategory = category
                 self.itemCategory.text = category
                 
@@ -936,7 +945,8 @@ print("Save Item Tapped ")
         if let boxFeedViewController = segue.source as? BoxFeedVC {
    
             if let selectedBox = boxFeedViewController.boxToPass {
-//                self.boxChangeType = .add
+                self.boxChangeType.next()
+                
                 self.box = selectedBox
                 
                 
@@ -991,8 +1001,7 @@ print("Save Item Tapped ")
             print("")
         }
         
-        
-        
+        self.updateBoxDetailsView()
         
         
     }
@@ -1041,6 +1050,7 @@ print("Save Item Tapped ")
                                        completion: nil)
         }
     }
+    var curPage = "ItemDetails"
 
 }
 

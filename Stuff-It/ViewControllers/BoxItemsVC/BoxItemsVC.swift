@@ -18,16 +18,17 @@ class BoxItemsVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDataSetD
         var boxItemIndexPath: NSIndexPath? = nil
         var REF_BOX_ITEMS: FIRDatabaseReference!
  
-    @IBAction func addToBoxBtn(_ sender: UIBarButtonItem) {
-//        Take all checked items that are in the array and add their keys to the Box/contents in Firebase
-    
-    }
-   
-//    override func viewWillDisappear(_ animated: Bool) {
-//        super.viewWillDisappear(animated)
-//        self.REF_ITEMS.removeAllObservers()
-//    }
 
+   
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        self.REF_BOX_ITEMS.removeAllObservers()
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        loadDataFromFirebase()
+    }
+    
     
     override func viewDidLoad() {
             super.viewDidLoad()
@@ -38,8 +39,6 @@ class BoxItemsVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDataSetD
             self.tableView.emptyDataSetSource = self
             self.tableView.emptyDataSetDelegate = self
 
-            loadDataFromFirebase()
- 
         }   // End ViewDidLoad
     
     
@@ -138,7 +137,6 @@ class BoxItemsVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDataSetD
     override  func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath){
         print("boxItems: didSelectRowAt ->Call segue")
         self.selectedItem = items[indexPath.row]
-        
         self.performSegue(withIdentifier: "itemDetails_SEGUE" , sender: self)
     }
    
@@ -195,11 +193,11 @@ class BoxItemsVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDataSetD
 
     
     func handleDeleteItem(alertAction: UIAlertAction!) -> Void {
-        print("IN THE DELETE FUNCTION")
-//        tableView.beginUpdates()
-
+print("From: \(curPage) ->  HandleDelte  ")
+        
         if let indexPath = boxItemIndexPath {
             let itemToDelete  = items[indexPath.row]
+            print("From: \(curPage) ->  itemToDelete :\(itemToDelete.itemKey)")
             
 //            remove item from box
             self.box.removeItemDetailsFromBox(itemKey: itemToDelete.itemKey)
@@ -210,8 +208,8 @@ class BoxItemsVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDataSetD
         }
         boxItemIndexPath = nil
 
-//        tableView.endUpdates()
-        tableView.reloadData()
+        self.loadDataFromFirebase()
+
     }
     
     
@@ -245,5 +243,7 @@ class BoxItemsVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDataSetD
                 }
             }
         }
+    
+    var curPage = "BoxItems"
 
 }

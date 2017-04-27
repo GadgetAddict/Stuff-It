@@ -8,8 +8,9 @@
 
 import Firebase
 import UIKit
+import DZNEmptyDataSet
 
-class AddItemsToBoxVC: UITableViewController {
+class AddItemsToBoxVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDataSetDelegate {
         
     var items = [Item]()
     var boxsCurrentItems = [Item]()
@@ -19,12 +20,18 @@ class AddItemsToBoxVC: UITableViewController {
     var REF_ITEMS: FIRDatabaseReference!
     var REF_BOX: FIRDatabaseReference!
   
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+                loadDataFromFirebase()
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        self.tableView.emptyDataSetSource = self
+        self.tableView.emptyDataSetDelegate = self
         tableView.tableFooterView = UIView()
         tableView.tableFooterView = UIView(frame: CGRect.zero)
-        loadDataFromFirebase()
         
     }   // End ViewDidLoad
     
@@ -93,10 +100,59 @@ class AddItemsToBoxVC: UITableViewController {
     }
 
     
-        override func didReceiveMemoryWarning() {
-            super.didReceiveMemoryWarning()
-            // Dispose of any resources that can be recreated.
-        }
+//    MARK: DZNEMPTY DATA 
+    
+    //    MARK: DNZ Empty Table View    DZNEmptyDataSetSource, DZNEmptyDataSetDelegate
+    
+    func image(forEmptyDataSet scrollView: UIScrollView!) -> UIImage! {
+        return UIImage(named: "package")
+    }
+    
+    func title(forEmptyDataSet scrollView: UIScrollView!) -> NSAttributedString! {
+        let text = "No Matching Items Found"
+        let attribs = [
+            NSFontAttributeName: UIFont.boldSystemFont(ofSize: 18),
+            NSForegroundColorAttributeName: UIColor.darkGray
+        ]
+        
+        return NSAttributedString(string: text, attributes: attribs)
+    }
+    
+    func description(forEmptyDataSet scrollView: UIScrollView!) -> NSAttributedString! {
+        let text = "There are no items with the \(String(describing: self.box.boxCategory!)) Category."
+        
+        let para = NSMutableParagraphStyle()
+        para.lineBreakMode = NSLineBreakMode.byWordWrapping
+        para.alignment = NSTextAlignment.center
+        
+        let attribs = [
+            NSFontAttributeName: UIFont.systemFont(ofSize: 14),
+            NSForegroundColorAttributeName: UIColor.lightGray,
+            NSParagraphStyleAttributeName: para
+        ]
+        
+        return NSAttributedString(string: text, attributes: attribs)
+    }
+    
+    func buttonTitle(forEmptyDataSet scrollView: UIScrollView!, for state: UIControlState) -> NSAttributedString! {
+        
+        let text = "Show All Items Anyway"
+        let attribs = [
+            NSFontAttributeName: UIFont.boldSystemFont(ofSize: 16),
+            NSForegroundColorAttributeName: view.tintColor
+            ] as [String : Any]
+        
+        return NSAttributedString(string: text, attributes: attribs)
+    }
+    
+    
+    func emptyDataSetDidTapButton(_ scrollView: UIScrollView!) {
+        print("something tappped")
+    }
+    
+    
+    
+    
     
         //MARK: - UITableViewDataSource
     
@@ -149,6 +205,6 @@ class AddItemsToBoxVC: UITableViewController {
 //            if let sr = tableView.indexPathsForSelectedRows {
 //            }
         }
-        
+           var curPage = "AddItemsToBox" 
 }
  
