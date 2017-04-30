@@ -13,7 +13,7 @@ import DZNEmptyDataSet
 
 class BoxStatusTableVC: UITableViewController, UINavigationControllerDelegate,DZNEmptyDataSetSource, DZNEmptyDataSetDelegate {
 
-    
+   
     var statuses = [Status]()
     var fromSettings: Bool = false
     
@@ -65,20 +65,24 @@ class BoxStatusTableVC: UITableViewController, UINavigationControllerDelegate,DZ
                      completion: nil)
     }
     
-    
+
+    override func viewWillDisappear(_ animated: Bool) {
+        REF_STATUS.removeAllObservers()
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         tableView.tableFooterView = UIView()
         tableView.tableFooterView = UIView(frame: CGRect.zero)
+        
         self.tableView.emptyDataSetSource = self
         self.tableView.emptyDataSetDelegate = self
             if fromSettings == true {
                 tableView.allowsSelection = false
             }
         
-        loadDataFromFirebase()
+       loadDataFromFirebase()
         
     }
     
@@ -96,7 +100,7 @@ class BoxStatusTableVC: UITableViewController, UINavigationControllerDelegate,DZ
         
         REF_STATUS.setValue(status)
         
-        loadDataFromFirebase()
+//        loadDataFromFirebase()
     }
     
     
@@ -109,14 +113,12 @@ class BoxStatusTableVC: UITableViewController, UINavigationControllerDelegate,DZ
         
         //         REF_STATUS.queryOrdered(byChild: "statusName").observe(.value, with: { snapshot in
        
-        self.REF_STATUS.observeSingleEvent(of: .value, with: { snapshot in
-//        self.REF_STATUS.observe(.value, with: { snapshot in
+ 
+          self.REF_STATUS.observe(.value, with: { snapshot in
             
             self.statuses = []
             if let snapshots = snapshot.children.allObjects as? [FIRDataSnapshot] {
                 for snap in snapshots {
-                    print("StatusSnap: \(snap)")
-                    
                     if let statusDict = snap.value as? Dictionary<String, AnyObject> {
                         let key = snap.key
                         let status = Status(statusKey: key, dictionary: statusDict)
@@ -210,6 +212,11 @@ class BoxStatusTableVC: UITableViewController, UINavigationControllerDelegate,DZ
     }
     
  
+    func tableView(tableView: UITableView, willDisplayCell cell: UITableViewCell, forRowAtIndexPath indexPath: NSIndexPath) {
+        cell.separatorInset = UIEdgeInsets.zero
+        cell.layoutMargins = UIEdgeInsets.zero
+    }
+    
     
     override func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
   
@@ -222,7 +229,7 @@ class BoxStatusTableVC: UITableViewController, UINavigationControllerDelegate,DZ
         
         let deleteAction = UITableViewRowAction(style: UITableViewRowActionStyle.default, title: "\u{1F5d1}\n Delete", handler: { (action: UITableViewRowAction, indexPath: IndexPath) -> Void in
             
-            let alert = UIAlertController(title: "Wait!", message: "Are you sure you want to permanently delete: \(String(describing: statusName))?", preferredStyle: .actionSheet)
+            let alert = UIAlertController(title: "Wait!", message: "Are you sure you want to permanently delete: \(String(describing: statusName!))?", preferredStyle: .actionSheet)
             
             let DeleteAction = UIAlertAction(title: "Delete", style: .destructive, handler: self.handleDeleteItem)
             let CancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: self.cancelDeleteItem)
@@ -240,36 +247,18 @@ class BoxStatusTableVC: UITableViewController, UINavigationControllerDelegate,DZ
         return [deleteAction]
     }
     
-    func tableView(tableView: UITableView, willDisplayCell cell: UITableViewCell, forRowAtIndexPath indexPath: NSIndexPath) {
-        cell.separatorInset = UIEdgeInsets.zero
-        cell.layoutMargins = UIEdgeInsets.zero
-    }
-    
-    
-    // Delete Confirmation and Handling
-    func confirmDelete(Item: String) {
-        let alert = UIAlertController(title: "Delete Item", message: "Are you sure you want to permanently delete '\(Item)' ?", preferredStyle: .actionSheet)
-        
-        let DeleteAction = UIAlertAction(title: "Delete", style: .destructive, handler: handleDeleteItem)
-        let CancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: cancelDeleteItem)
-        
-        alert.addAction(DeleteAction)
-        alert.addAction(CancelAction)
-        
-        
-        self.present(alert, animated: true, completion: nil)
-    }
+
+ 
     
     func handleDeleteItem(alertAction: UIAlertAction!) -> Void {
         if let indexPath = statusIndexPath {
             
-            tableView.beginUpdates()
-            let status  = statuses[indexPath.row]
+             let status  = statuses[indexPath.row]
             let statusKey = status.statusKey
-            print("Status Key is \(String(describing: statusKey))")
+//            print("Status Key is \(String(describing: statusKey))")
             self.REF_STATUS.child(statusKey!).removeValue()
             statusIndexPath = nil
-            tableView.endUpdates()
+            tableView.reloadData()
             
         }
     }
@@ -279,6 +268,7 @@ class BoxStatusTableVC: UITableViewController, UINavigationControllerDelegate,DZ
     
     
     func cancelDeleteItem(alertAction: UIAlertAction!) {
+        self.tableView.isEditing = false
         statusIndexPath = nil
     }
     
@@ -291,7 +281,6 @@ class BoxStatusTableVC: UITableViewController, UINavigationControllerDelegate,DZ
     
     override  func tableView(_ tableView: UITableView, didSelectRowAt
         indexPath: IndexPath){
-        print("CALLING THE SEGUE CELL")
         self.selecteStatus = statuses[indexPath.row]
         
         self.performSegue(withIdentifier: "unwindToBoxDetailsWithStatus", sender: self)

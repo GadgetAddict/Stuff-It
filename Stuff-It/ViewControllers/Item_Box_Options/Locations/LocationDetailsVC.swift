@@ -44,6 +44,10 @@ class LocationDetailsVC: UITableViewController {
             areaTableCell.isUserInteractionEnabled = true
             areaLabel.isHidden = false
             areaLabel.attributedText = changeDetailText(string: "Select", font: "HelveticaNeue-Bold")
+            detailTableCell.isUserInteractionEnabled = true
+            detailLabel.isHidden = false
+            detailLabel.attributedText = changeDetailText(string: "Select", font: "HelveticaNeue-Bold")
+
          }
     }
     
@@ -87,7 +91,6 @@ class LocationDetailsVC: UITableViewController {
     
     
     @IBAction func cancelButtonPressed(_ sender: UIBarButtonItem) {
-        print("CANCEL BUTTON PRESSEd")
         
         performSegue(withIdentifier: "unwindCancelToSettings", sender: nil)
         
@@ -106,7 +109,6 @@ class LocationDetailsVC: UITableViewController {
     }
     
         override func viewDidLoad() {
-            print("LocationDetails: ew")
             hideDoneButton(isHidden:true)
             
             detailTableCell.isUserInteractionEnabled = false

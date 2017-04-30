@@ -8,6 +8,7 @@
 
 import UIKit
 import Firebase
+import M13Checkbox
 
 enum SegueType {
     case new
@@ -16,7 +17,7 @@ enum SegueType {
 }
 
 
-class BoxDetails: UITableViewController,UIImagePickerControllerDelegate , UINavigationControllerDelegate {
+class BoxDetails: UITableViewController,UIImagePickerControllerDelegate, UITextFieldDelegate , UINavigationControllerDelegate {
 
   
     
@@ -158,6 +159,15 @@ class BoxDetails: UITableViewController,UIImagePickerControllerDelegate , UINavi
         
     }
     
+     @IBAction func nameField_endEditing(_ sender: Any) {
+        self.resignFirstResponder()
+ }
+    
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+            self.view.endEditing(true)
+            return true
+        
+    }
     
     @IBAction func saveButtonTapped(_ sender: UIBarButtonItem) {
          checkForEmptyFields()

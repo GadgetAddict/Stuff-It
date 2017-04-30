@@ -41,6 +41,9 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
         
         setupPage()
         
+        self.tableView.emptyDataSetSource = self
+        self.tableView.emptyDataSetDelegate = self
+        
         tableView.tableFooterView = UIView()
         tableView.tableFooterView = UIView(frame: CGRect.zero)
  
@@ -173,39 +176,10 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-//        tableView.backgroundView = nil
-//        
-//        
-//        if categories.count > 0 {
-//            
-//            self.tableView.separatorStyle = UITableViewCellSeparatorStyle.singleLine
-//            return categories.count
-//        } else {
-//            
-//            let emptyStateLabel = UILabel(frame: CGRect(x: 0, y: 40, width: 270, height: 32))
-//            emptyStateLabel.font = emptyStateLabel.font.withSize(14)
-//            emptyStateLabel.text = "Click the ' + ' button to Choose a Category"
-//            emptyStateLabel.textColor = UIColor.lightGray
-//            emptyStateLabel.textAlignment = .center;
-//            tableView.backgroundView = emptyStateLabel
-//            
-//            self.tableView.separatorStyle = UITableViewCellSeparatorStyle.none
-//        }
-//        
-//        return 0
         return categories.count
     }
     
-    
-    
-    
-    
-    //    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-    //        self.performSegue(withIdentifier: "unwindWithSelectedLocation", sender: self)
-    //
-    //    }
-    
-    
+
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let category = categories[indexPath.row]
@@ -221,43 +195,11 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
     }
     
     
-    
-    
-    // MARK: UITableViewDelegate Methods
-    func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
-        if editingStyle == .delete {
-            categoryIndexPath = indexPath
-            let category  = categories[indexPath.row]
-            if categoryType.rawValue == "category" {
-                let categoriesToDelete = category.category
-                confirmDelete(Item: categoriesToDelete!)
-                
-            } else {
-                let categoriesToDelete = category.subcategory
-                confirmDelete(Item: categoriesToDelete!)
-                
-            }
-            
-            
-        } else {
-            if editingStyle == .insert {
-                tableView.beginUpdates()
-                
-                //                tableView.insertRowsAtIndexPaths([
-                //                    NSIndexPath(forRow: statuses.count-1, inSection: 0)
-                //                    ], withRowAnimation: .Automatic)
-                //
-                tableView.endUpdates()
-            }
-        }
-    }
-    
-    
-    func tableView(tableView: UITableView, editActionsForRowAtIndexPath indexPath: NSIndexPath) -> [UITableViewRowAction]? {
+    override func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
         
         categoryIndexPath = indexPath as NSIndexPath?
         let categoriesToDelete  = categories[indexPath.row]
-        let categoryName = categoriesToDelete.category
+        let categoryName = categoriesToDelete.category!
         
         
         
@@ -287,19 +229,6 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
     }
     
     
-    // Delete Confirmation and Handling
-    func confirmDelete(Item: String) {
-        let alert = UIAlertController(title: "Delete \(categoryType.rawValue.capitalized)", message: "Are you sure you want to permanently delete '\(Item)' ?", preferredStyle: .actionSheet)
-        
-        let DeleteAction = UIAlertAction(title: "Delete", style: .destructive, handler: handleDeleteItem)
-        let CancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: cancelDeleteItem)
-        
-        alert.addAction(DeleteAction)
-        alert.addAction(CancelAction)
-        
-        
-        self.present(alert, animated: true, completion: nil)
-    }
     
     func handleDeleteItem(alertAction: UIAlertAction!) -> Void {
         if let indexPath = categoryIndexPath {
@@ -321,13 +250,14 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
     
     func cancelDeleteItem(alertAction: UIAlertAction!) {
         categoryIndexPath = nil
+        self.tableView.isEditing = false
+
     }
     
-    func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
+    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
         // the cells you would like the actions to appear needs to be editable
         return true
     }
-    
     
     
     
@@ -399,16 +329,9 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
     
     func writeToFb(enteredText: String) {
         
-        
-        
-        print("I'm in postToFirebase")
-        
         let newCategoryTrimmed = enteredText.trimmingCharacters(in: NSCharacterSet.whitespaces).capitalized
         
         let category = [categoryType.rawValue : newCategoryTrimmed]
-        
-        
-        //        let REF_LOCATION = DataService.ds.REF_BASE.child("/collections/\(self.collectionID!)/inventory/locations/\(locationType.rawValue)").childByAutoId()
         
         REF_CATEGORY.childByAutoId().setValue(category)
         
@@ -424,9 +347,8 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
             self.REF_CATEGORY = self.REF_CATEGORY.child(passedCategory!)
         }
         UIApplication.shared.isNetworkActivityIndicatorVisible = true
-        
-        self.REF_CATEGORY.observeSingleEvent(of: .value, with: { snapshot in
-             
+        self.REF_CATEGORY.observe(.value, with: { snapshot in
+
             self.categories = []
             if let snapshots = snapshot.children.allObjects as? [FIRDataSnapshot] {
                 for snap in snapshots {
@@ -455,12 +377,7 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
             let indexPath = tableView.indexPath(for: cell)
             
             self.selectedCategory = categories[indexPath!.row]
-            
-            //            if segue.identifier == "unwindWithSelectedLocation" {
-            //                print("saveLocationDetail SEGUE ")
-            //
-            //
-            //                }
+         
         }
         
     }

@@ -47,6 +47,9 @@ PODS:
   - GoogleSymbolUtilities (1.1.2)
   - GoogleUtilities (1.3.2):
     - GoogleSymbolUtilities (~> 1.1)
+  - Kingfisher (3.6.2)
+  - M13Checkbox (3.1.3)
+  - NextResponderTextField (2.0.1)
   - QRCode (0.5)
 
 DEPENDENCIES:
@@ -56,6 +59,9 @@ DEPENDENCIES:
   - Firebase/Core
   - Firebase/Database
   - Firebase/Storage
+  - Kingfisher (~> 3.0)
+  - M13Checkbox
+  - NextResponderTextField
   - QRCode (~> 0.5)
 
 SPEC CHECKSUMS:
@@ -74,8 +80,11 @@ SPEC CHECKSUMS:
   GoogleNetworkingUtilities: 3edd3a8161347494f2da60ea0deddc8a472d94cb
   GoogleSymbolUtilities: 631ee17048aa5e9ab133470d768ea997a5ef9b96
   GoogleUtilities: 8bbc733218aad26306f9d4a253823986110e3358
+  Kingfisher: 2c94e72c6830622c71d06adf4ea024c37d316830
+  M13Checkbox: c132a7e0eb964731855eff67b883a0b21b7c0977
+  NextResponderTextField: 93221cea88a1f2838558db88adc46d2a0763f0dd
   QRCode: a249ed747aeb0f4bf5f9c58b5b001b6b3bc80073
 
-PODFILE CHECKSUM: d2993388d1b99fcbdb46308bef0276db7037b3ea
+PODFILE CHECKSUM: d94671498513a2cd5b4c80e37ea9b67337b86769
 
 COCOAPODS: 1.1.1

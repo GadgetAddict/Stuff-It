@@ -14,21 +14,8 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     var handle: FIRAuthStateDidChangeListenerHandle?
     var activeUser: FIRUser!
     
-//    let defaults = UserDefaults.standard
-  
-//    override func viewDidAppear(_ animated: Bool) {
-//        if let alreadySignedIn = FIRAuth.auth()?.currentUser {
-//            print("alreadySignedIn \(alreadySignedIn.email) ")
-//            
-//             self.performSegue(withIdentifier: "SIGNED_IN", sender:nil)
-//        } else {
-//            // sign in
-//        }
-//    }
     
-    
-    
-    
+ 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         print("Login viewDidAppear.")
@@ -130,62 +117,69 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
        login()
     }
     
+//    func handleLogin() {  //this is from new messager app
+//        guard let email = textFieldLoginEmail.text, let password = textFieldLoginPassword.text else {
+//            print("Form is not valid")
+//            return
+//        }
+//        FIRAuth.auth()?.signIn(withEmail: email, password: password, completion: { (user, error) in
+//            print("LOGIN: Is this FB COmpletion hanlder?")
+//            if error != nil {
+//                print(error)
+//                print("This is error message")
+//                return
+//            }
+//            // Successfullu logged in our user
+//            print("Maybe this is the real completion handler")
+//            self.dismiss(animated: true, completion: nil)
+//        })
+//    }
+//    
+    
     func login(){
         // Sign In with credentials.
-        guard let email = textFieldLoginEmail.text, let password = textFieldLoginPassword.text else { return }
-        print("98")
-
-        FIRAuth.auth()?.signIn(withEmail: email, password: password) { (user, error) in
-            print("101")
-
- 
-            DataService.ds.REF_USER_CURRENT.observeSingleEvent(of: .value, with: { snapshot in
-                print("105")
-
-                     if let collectionRefString = snapshot.value as? String {
-                        print(" LOGIN VC Collection ID is \(collectionRefString)")
-                        COLLECTION_ID = collectionRefString
-
-                        
-//                        let defaults = UserDefaults.standard
-//                        defaults.set(collectionRefString, forKey: "CollectionIdRef")
-                    }
-                
-            })
- 
-            
-            if (error != nil) {
-                // an error occurred while attempting login
-                if let errCode = FIRAuthErrorCode(rawValue: (error?._code)!) {
-                    switch errCode {
-                    case .errorCodeInvalidEmail:
-                        self.loginErrorAlert("Sign In Failed", message: "Enter a Valid Email Address.")
-                    case .errorCodeWrongPassword:
-                        self.loginErrorAlert("Sign In Failed", message: "User Name and Passwords Do Not Match.")
-                    default:
-                        self.loginErrorAlert("Sign In Failed", message: "Please Check Your Information and Try Again.")
-                    }
-                }
-            }
+        
+        guard let email = textFieldLoginEmail.text, !email.isEmpty else {
+            self.loginErrorAlert("Login Failed", message: "Enter a Valid Email Address.")
+            return
+        }
+        guard let password = textFieldLoginPassword.text, !password.isEmpty else {
+            self.loginErrorAlert("Login Failed", message: "Password cannot be blank.")
+            return
         }
  
-    }
-    
-    func setCollection(){
+        FIRAuth.auth()?.signIn(withEmail: email, password: password, completion: { (user, error) in
+            if error != nil {
+//        self.loginErrorAlert("Login Failed", message: error?.localizedDescription)
+                // an error occurred while attempting login
+                                if let errCode = FIRAuthErrorCode(rawValue: (error?._code)!) {
+                                    switch errCode {
+                                    case .errorCodeInvalidEmail:
+                                        self.loginErrorAlert("Sign In Failed", message: "Enter a Valid Email Address.")
+                                    case .errorCodeWrongPassword:
+                                        self.loginErrorAlert("Sign In Failed", message: "Incorrect Email address or Password.")
+                                    default:
+                                        self.loginErrorAlert("Sign In Failed", message: "Please Check Your Information and Try Again.")
+                                    }
+                                }
+            
+
+                 print(error)
+                return
+            }
+            DataService.ds.REF_USER_CURRENT.observeSingleEvent(of: .value, with: { snapshot in
+                print("105")
+                
+                if let collectionRefString = snapshot.value as? String {
+                    print(" LOGIN VC Collection ID is \(collectionRefString)")
+                    COLLECTION_ID = collectionRefString
+                }})
+            // Successfullu logged in our user
+            self.dismiss(animated: true, completion: nil)
+        })
+
  
-        DataService.ds.REF_USER_CURRENT.observeSingleEvent(of: .value, with: { snapshot in
-            print("LOGIN VC: DATASERVICE.USERCURRENT - to Get Collection")
-            if let collectionRefString = snapshot.value as? String {
-
-                COLLECTION_ID = collectionRefString
-                print("Login VC: PERFORM SEGUE")
-                self.segue()
-//               self.performSegue(withIdentifier: self.loginToApp, sender:nil)
-
-
-        }})
-        
-         }
+    }
     
     
     

@@ -12,16 +12,16 @@
 import UIKit
 import Firebase
 import DZNEmptyDataSet
+import Kingfisher
 
 
-
-class itemFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmptyDataSetSource, DZNEmptyDataSetDelegate {
+class itemFeedVC: UITableViewController ,UINavigationControllerDelegate,DZNEmptyDataSetSource, DZNEmptyDataSetDelegate {
     
     
     let searchController = UISearchController(searchResultsController: nil)
     var filteredItems = [Item]()
 
-    static var imageCache: NSCache<NSString, UIImage> = NSCache()
+//    static var imageCache: NSCache<NSString, UIImage> = NSCache()
     var REF_ITEMS: FIRDatabaseReference!
     var items = [Item]()
     
@@ -56,9 +56,11 @@ class itemFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpt
     
     override func viewDidLoad() {
      super.viewDidLoad()
-   
-        
-        
+//        KingfisherManager.shared.cache.clearMemoryCache()
+//        KingfisherManager.shared.cache.clearDiskCache()
+
+//    
+    
         // Setup the Search Controller
         searchController.searchResultsUpdater = self
         searchController.searchBar.delegate = self
@@ -134,8 +136,10 @@ class itemFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpt
                     }
                 }
             }
-            self.tableView.reloadData()
-
+            DispatchQueue.main.async(execute: {
+                self.tableView.reloadData()
+            })
+            
             UIApplication.shared.isNetworkActivityIndicatorVisible = false
             
              })
@@ -249,54 +253,40 @@ class itemFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpt
         return items.count
     }
     
+   
+    
+ 
+    
+    override func tableView(_ tableView: UITableView, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+           // This will cancel all unfinished downloading task when the cell disappearing.
+        
+        (cell as! ItemCell).imageThumb.kf.cancelDownloadTask()
+        print("From: \(self.curPage) ->  DID END DISPLAYING CELL ")
+    }
+    
      override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if let cell = tableView.dequeueReusableCell(withIdentifier: "ItemCell", for: indexPath) as? ItemCell {
             let item: Item
+ 
             if searchController.isActive && searchController.searchBar.text != "" {
                 item = filteredItems[indexPath.row]
             } else {
                 item = items[indexPath.row]
             }
-            var img: UIImage?
+ 
             
-            if let url = item.itemImgUrl {
-                img = itemFeedVC.imageCache.object(forKey: url  as NSString)
-            }
-            
-            cell.configureCell(item: item, img: img)
+            cell.configureCell(item: item)
+ 
             
             return cell
         } else {
             return ItemCell()
         }
     }
-/*
-    override func tableView(_ tableView: UITableView, cellForRowAt
-        indexPath: IndexPath) -> UITableViewCell {
  
-        if let cell = tableView.dequeueReusableCell(withIdentifier: "ItemCell", for: indexPath) as? ItemCell {
-        let item: Item
-        if searchController.isActive && searchController.searchBar.text != "" {
-            item = filteredItems[indexPath.row]
-        } else {
-            item = items[indexPath.row]
-        }
-        var img: UIImage?
-
-        if let url = item.itemImgUrl {
-            img = itemFeedVC.imageCache.object(forKey: url  as NSString)
-        }
-
-        cell.configureCell(item: item, img: img)
  
-        return cell
-        } else {
-        return ItemCell()
-        }
-  
-    }
-
- */
+    
+ 
 //    MARK: Search Function
     
     func filterContentForSearchText(_ searchText: String, scope: String = "Name") {
@@ -431,51 +421,9 @@ class itemFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpt
         }
     
         func pickForBox(alertAction: UIAlertAction) -> Void {
-            // If ITem is already boxed - warn to remove first
-            
-            
-            // should it remove first and then segue or  unwind and remove/re-add same time ?
-            
-            
-            
-            // prepare for segue passes the selected item to the box list - then boxfeed-unwind passes item back
             self.performSegue(withIdentifier: "showBoxList", sender: nil)
-            
-    }
- 
-/*     func showAlertForRow(row: Int) {
-          // add item to box by scanning or by picking a number from table view
+        }
     
-             let dict = items[row]
-            let item = dict.itemName
-    
-            //ActionSheet to ask user to scan or choose
-           let alertController = UIAlertController(title: "Add \(item) to Box", message: "", preferredStyle: UIAlertControllerStyle.actionSheet)
-    
-          let qrScanAction = UIAlertAction(title: "Scan Box QR", style: UIAlertActionStyle.default, handler: {(alert :UIAlertAction) in
-               print("Scan QR button tapped")
-//            MARK: can segue right from here or run function
-//                self.performSegue(withIdentifier: "toScanQR", sender: nil)
-                   self.pickForBox()
-    
-           })
-           alertController.addAction(qrScanAction)
-          let showBoxListAction = UIAlertAction(title: "Pick from List of Boxes", style: UIAlertActionStyle.default, handler: {(alert :UIAlertAction) in
-              print("show List button tapped")
-//              self.performSegue(withIdentifier: "showBoxList", sender: nil)
-    
-           })
-          alertController.addAction(showBoxListAction)
-    
-          let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: {(alert :UIAlertAction) in
-              print("Cancel button tapped")
-         })
-         alertController.addAction(cancelAction)
-    
-           present(alertController, animated: true, completion: nil)
-       }
-   */
-     
         @IBAction func addToBox(sender: AnyObject) {
            print("Clicked Add to Box ACTION - 472 - ")
            self.tableView.setEditing(true, animated: true)
@@ -506,7 +454,7 @@ class itemFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpt
                      if segue.identifier == "existingItem_SEGUE" {
      
                         if let destination = segue.destination as? ItemDetailsVC {
-                            destination.itemKeyPassed = itemToPass.itemKey
+                             destination.itemKeyPassed = itemToPass.itemKey
 //                            destination.item = itemToPass.itemBoxKey
 
                             destination.itemType = .existing
@@ -565,3 +513,33 @@ extension itemFeedVC: UISearchResultsUpdating {
     }
 }
 
+
+/*
+ 
+ 
+ override func tableView(_ tableView: UITableView, cellForRowAt
+ indexPath: IndexPath) -> UITableViewCell {
+ 
+ if let cell = tableView.dequeueReusableCell(withIdentifier: "ItemCell", for: indexPath) as? ItemCell {
+ let item: Item
+ if searchController.isActive && searchController.searchBar.text != "" {
+ item = filteredItems[indexPath.row]
+ } else {
+ item = items[indexPath.row]
+ }
+ var img: UIImage?
+ 
+ if let url = item.itemImgUrl {
+ img = itemFeedVC.imageCache.object(forKey: url  as NSString)
+ }
+ 
+ cell.configureCell(item: item, img: img)
+ 
+ return cell
+ } else {
+ return ItemCell()
+ }
+ 
+ }
+ 
+ */

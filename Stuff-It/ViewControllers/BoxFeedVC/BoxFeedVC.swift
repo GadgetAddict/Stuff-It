@@ -100,7 +100,7 @@ class BoxFeedVC: UITableViewController ,UINavigationControllerDelegate, DZNEmpty
                 // Set BOX REF 
                 
                self.boxesREF = REF_BOXES.queryOrdered(byChild: "boxCategory").queryEqual(toValue: category)
-                
+//                let complexQuery = REF_BOXES.queryOr
             }
         }
 

@@ -14,7 +14,8 @@ pod 'Firebase/Storage'
 pod 'FBSDKLoginKit'
 pod 'FBSDKLoginKit'
 pod 'DZNEmptyDataSet'
-pod "QRCode", "~> 0.5"
-
-
+pod "QRCode", '~> 0.5'
+pod 'M13Checkbox'
+pod 'Kingfisher', '~> 3.0'
+pod 'NextResponderTextField'
 end

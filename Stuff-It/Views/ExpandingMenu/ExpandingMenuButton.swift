@@ -532,6 +532,12 @@ open class ExpandingMenuButton: UIView, UIGestureRecognizerDelegate {
                 farPoint.x = farPoint.x + 80
                 nearPoint.x = nearPoint.x + 80
  
+            
+//            case 3:
+//                //print(" 492 case 2 : \(index)")
+//                endPoint.x = endPoint.x + 80
+//                farPoint.x = farPoint.x + 80
+//                nearPoint.x = nearPoint.x + 80
 
             default:
                print(" Expanding Menu case default: \(index)")

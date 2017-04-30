@@ -8,6 +8,7 @@
 
 import UIKit
 import Firebase
+import DZNEmptyDataSet
 
 enum ColorLoadsFrom:String {
     case box
@@ -15,7 +16,7 @@ enum ColorLoadsFrom:String {
     case settings
 }
 
-class ColorTableVC: UITableViewController {
+class ColorTableVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDataSetDelegate {
 
     var segueId: String!
         var colors = [Color]()
@@ -72,7 +73,9 @@ class ColorTableVC: UITableViewController {
         
         override func viewDidLoad() {
             super.viewDidLoad()
-            
+            self.tableView.emptyDataSetSource = self
+            self.tableView.emptyDataSetDelegate = self
+
             tableView.tableFooterView = UIView()
             tableView.tableFooterView = UIView(frame: CGRect.zero)
             
@@ -88,26 +91,23 @@ class ColorTableVC: UITableViewController {
                 
             }
             
-            
-            
-//            let defaults = UserDefaults.standard
-//            
-//            if (defaults.object(forKey: "CollectionIdRef") != nil) {
-//                print("Getting Defaults")
-//                
-//                if let collectionId = defaults.string(forKey: "CollectionIdRef") {
-//                    self.collectionID = collectionId
-//                }
-//            }
-//            
-            loadDataFromFirebase()
-            
-            // End ViewDidLoad
-            
-        }
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+      
+        loadDataFromFirebase()
         
+    }
     
+    override func viewWillDisappear(_ animated: Bool) {
+        REF_COLOR.removeAllObservers()
+    }
     
+    func autoGenerateColorList() {
+        
+//        write code to add a few colors to FB
+        
+    }
         
         func writeToFb(enteredText: String) {
             print("I'm in postToFirebase")
@@ -133,10 +133,8 @@ class ColorTableVC: UITableViewController {
             
             self.REF_COLOR = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/colors")
             
-            //         REF_STATUS.queryOrdered(byChild: "statusName").observe(.value, with: { snapshot in
             
-            self.REF_COLOR.observeSingleEvent(of: .value, with: { snapshot in
-//            self.REF_COLOR.observe(.value, with: { snapshot in
+              self.REF_COLOR.observe(.value, with: { snapshot in
                 
                 self.colors = []
                 if let snapshots = snapshot.children.allObjects as? [FIRDataSnapshot] {
@@ -158,36 +156,29 @@ class ColorTableVC: UITableViewController {
         }
         
         
-        // MARK: - Table view data source
-        
+    // MARK: - Table view Settings
+
+    func tableView(tableView: UITableView, willDisplayCell cell: UITableViewCell, forRowAtIndexPath indexPath: NSIndexPath) {
+        cell.separatorInset = UIEdgeInsets.zero
+        cell.layoutMargins = UIEdgeInsets.zero
+    }
+    
+    // MARK: - Table view data source
+
         func numberOfSectionsInTableView(tableView: UITableView) -> Int {
             return 1
         }
         
         override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
             tableView.backgroundView = nil
- 
-            if colors.count > 0 {
-                
-                self.tableView.separatorStyle = UITableViewCellSeparatorStyle.singleLine
-                return colors.count
-            } else {
-                
-                let emptyStateLabel = UILabel(frame: CGRect(x: 0, y: 40, width: 270, height: 32))
-                emptyStateLabel.font = emptyStateLabel.font.withSize(14)
-                emptyStateLabel.text = "Tap '+' to Begin adding Colors"
-                emptyStateLabel.textAlignment = .center;
-                tableView.backgroundView = emptyStateLabel
-                
-                self.tableView.separatorStyle = UITableViewCellSeparatorStyle.none
-            }
+//                  self.tableView.separatorStyle = UITableViewCellSeparatorStyle.singleLine
             
-            return 0
+            return colors.count
+            
     }
     
     
-      
-        
+    
         override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
             
             let color = colors[indexPath.row]
@@ -201,116 +192,123 @@ class ColorTableVC: UITableViewController {
                 return ColorCell()
             }
         }
+    
+    
+    
+
+    func image(forEmptyDataSet scrollView: UIScrollView!) -> UIImage! {
+        return UIImage(named: "package")
+    }
+    
+    func title(forEmptyDataSet scrollView: UIScrollView!) -> NSAttributedString! {
+        let text = "Add colors"
+        let attribs = [
+            NSFontAttributeName: UIFont.boldSystemFont(ofSize: 18),
+            NSForegroundColorAttributeName: UIColor.darkGray
+        ]
+        
+        return NSAttributedString(string: text, attributes: attribs)
+    }
+    
+    func description(forEmptyDataSet scrollView: UIScrollView!) -> NSAttributedString! {
+        let text = "Items and Boxes can be assigned a color.\n Add colors to the list."
+        
+        let para = NSMutableParagraphStyle()
+        para.lineBreakMode = NSLineBreakMode.byWordWrapping
+        para.alignment = NSTextAlignment.center
+        
+        let attribs = [
+            NSFontAttributeName: UIFont.systemFont(ofSize: 14),
+            NSForegroundColorAttributeName: UIColor.lightGray,
+            NSParagraphStyleAttributeName: para
+        ]
+        
+        return NSAttributedString(string: text, attributes: attribs)
+    }
+    
+    func buttonTitle(forEmptyDataSet scrollView: UIScrollView!, for state: UIControlState) -> NSAttributedString! {
+        
+        let text = "Automatically Add Colors Now."
+        let attribs = [
+            NSFontAttributeName: UIFont.boldSystemFont(ofSize: 16),
+            NSForegroundColorAttributeName: view.tintColor
+            ] as [String : Any]
+        
+        return NSAttributedString(string: text, attributes: attribs)
+    }
+    
+    
+    func emptyDataSetDidTapButton(_ scrollView: UIScrollView!) {
+        autoGenerateColorList()
+    }
+    
+    
+    override  func tableView(_ tableView: UITableView, didSelectRowAt
+        indexPath: IndexPath){
+        print("CALLING THE SEGUE CELL")
+        self.selectedColor = colors[indexPath.row]
+        
+        self.performSegue(withIdentifier: self.segueId , sender: self)
+    }
+    
+    
+    
+    func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
+        // the cells you would like the actions to appear needs to be editable
+        return true
+    }
+    
+    
+    override func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
+        
+        
+        colorIndexPath = indexPath as NSIndexPath?
+        let colorsToDelete  = colors[indexPath.row]
+        let colorName = colorsToDelete.colorName
         
         
         
-        
-        // MARK: UITableViewDelegate Methods
-        func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
-            if editingStyle == .delete {
-                colorIndexPath = indexPath
-                let color  = colors[indexPath.row]
-                let colorsToDelete = color.colorName
-                confirmDelete(Item: colorsToDelete!)
-            } else {
-                if editingStyle == .insert {
-                    tableView.beginUpdates()
-                    
-                    //                tableView.insertRowsAtIndexPaths([
-                    //                    NSIndexPath(forRow: statuses.count-1, inSection: 0)
-                    //                    ], withRowAnimation: .Automatic)
-                    //
-                    tableView.endUpdates()
-                }
-            }
-        }
-        
-        
-        func tableView(tableView: UITableView, editActionsForRowAtIndexPath indexPath: NSIndexPath) -> [UITableViewRowAction]? {
+        let deleteAction = UITableViewRowAction(style: UITableViewRowActionStyle.default, title: "\u{1F5d1}\n Delete", handler: { (action: UITableViewRowAction, indexPath: IndexPath) -> Void in
             
-          colorIndexPath = indexPath as NSIndexPath?
-            let colorsToDelete  = colors[indexPath.row]
-            let colorName = colorsToDelete.colorName
+            let alert = UIAlertController(title: "Wait!", message: "Are you sure you want to permanently delete: \(String(describing: colorName!))?", preferredStyle: .actionSheet)
             
-            
-            
-            let deleteAction = UITableViewRowAction(style: UITableViewRowActionStyle.default, title: "\u{1F5d1}\n Delete", handler: { (action: UITableViewRowAction, indexPath: IndexPath) -> Void in
-                
-                let alert = UIAlertController(title: "Wait!", message: "Are you sure you want to permanently delete: \(String(describing: colorName))?", preferredStyle: .actionSheet)
-                
-                let DeleteAction = UIAlertAction(title: "Delete", style: .destructive, handler: self.handleDeleteItem)
-                let CancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: self.cancelDeleteItem)
-                
-                alert.addAction(DeleteAction)
-                alert.addAction(CancelAction)
-                
-                
-                self.present(alert, animated: true, completion: nil)
-                
-            })
-            
-            deleteAction.backgroundColor = UIColor.red
-            
-            return [deleteAction]
-        }
-        
-        func tableView(tableView: UITableView, willDisplayCell cell: UITableViewCell, forRowAtIndexPath indexPath: NSIndexPath) {
-            cell.separatorInset = UIEdgeInsets.zero
-            cell.layoutMargins = UIEdgeInsets.zero
-        }
-        
-        
-        // Delete Confirmation and Handling
-        func confirmDelete(Item: String) {
-            let alert = UIAlertController(title: "Delete Item", message: "Are you sure you want to permanently delete '\(Item)' ?", preferredStyle: .actionSheet)
-            
-            let DeleteAction = UIAlertAction(title: "Delete", style: .destructive, handler: handleDeleteItem)
-            let CancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: cancelDeleteItem)
+            let DeleteAction = UIAlertAction(title: "Delete", style: .destructive, handler: self.handleDeleteItem)
+            let CancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: self.cancelDeleteItem)
             
             alert.addAction(DeleteAction)
             alert.addAction(CancelAction)
             
             
             self.present(alert, animated: true, completion: nil)
-        }
+            
+        })
         
-        func handleDeleteItem(alertAction: UIAlertAction!) -> Void {
+        deleteAction.backgroundColor = UIColor.red
+        
+        return [deleteAction]
+    }
+    
+   
+
+    func cancelDeleteItem(alertAction: UIAlertAction!) {
+        self.tableView.isEditing = false
+        colorIndexPath = nil
+    }
+   
+     func handleDeleteItem(alertAction: UIAlertAction!) -> Void {
             if let indexPath = colorIndexPath {
                 
-                tableView.beginUpdates()
-                let color  = colors[indexPath.row]
+                 let color  = colors[indexPath.row]
                 let colorKey = color.colorKey
                 print("Color Key is \(String(describing: colorKey))")
                 self.REF_COLOR.child(colorKey!).removeValue()
                 colorIndexPath = nil
-                tableView.endUpdates()
+                tableView.reloadData()
                 
             }
         }
-        
-        
-        
-        
-        
-        func cancelDeleteItem(alertAction: UIAlertAction!) {
-           colorIndexPath = nil
-        }
-        
-        func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
-            // the cells you would like the actions to appear needs to be editable
-            return true
-        }
-        
+
     
-        
-        override  func tableView(_ tableView: UITableView, didSelectRowAt
-            indexPath: IndexPath){
-            print("CALLING THE SEGUE CELL")
-            self.selectedColor = colors[indexPath.row]
-            
-            self.performSegue(withIdentifier: self.segueId , sender: self)
-        }
-        
         func showErrorAlert(title: String, msg: String) {
             let alertView = UIAlertController(title: title, message: msg, preferredStyle: .alert)
             alertView.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))

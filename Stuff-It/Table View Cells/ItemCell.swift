@@ -8,15 +8,15 @@
 
 import UIKit
 import Firebase
+import Kingfisher
 
 
 class ItemCell: UITableViewCell, UINavigationControllerDelegate {
     
     
-     
-       
      var item: Item!
- 
+    var url: URL?
+    
     @IBOutlet weak var nameLbl: UILabel!
     @IBOutlet weak var categoryLbl: UILabel!
     @IBOutlet weak var subCategoryLbl: UILabel!
@@ -30,17 +30,36 @@ class ItemCell: UITableViewCell, UINavigationControllerDelegate {
         
         
     }//awakeFromNib
-    
-    
-    
-    
-//    override func draw(_ rect: CGRect) {
-//        imageThumb.clipsToBounds = true
-//    }
-   
-    func configureCell(item: Item, img: UIImage?) {
-//     let getImage_QUEUE = DispatchQueue(label: "com.michael.getImagequeue", qos: DispatchQoS.userInteractive     )
  
+   
+    func configureCell(item: Item) {
+ 
+ 
+        if let itemUrl = item.itemImgUrl {
+            url = URL(string:itemUrl)
+        }
+        
+        imageThumb.kf.indicatorType = .activity
+        
+        let processor = RoundCornerImageProcessor(cornerRadius: imageThumb.frame.height / 2.0)
+ //        let processor = OverlayImageProcessor(overlay: .red, fraction: 0.7)
+        imageThumb.kf.setImage(with: self.url ,
+                                    placeholder: nil,//UIImage(named: "qrBoxLogoV2_stroke"),
+                                    options: [ .transition(ImageTransition.fade(3))] )
+    
+    
+            
+//        
+//                                    progressBlock: { receivedSize, totalSize in
+//                                         let percentage = (Float(receivedSize) / Float(totalSize)) * 100.0
+//                                         print("downloading progress: \(percentage)%")
+//                                         myIndicator.percentage = percentage
+// },
+//                                    completionHandler: { image, error, cacheType, imageURL in
+//                                        })
+//    
+        
+    
         self.item = item
      
  
@@ -88,35 +107,30 @@ class ItemCell: UITableViewCell, UINavigationControllerDelegate {
 
         }
  
-        if let URL = item.itemImgUrl {
-            let ref = FIRStorage.storage().reference(forURL: URL)
-            ref.data(withMaxSize: 2 * 1024 * 1024, completion: { (data, error) in
-                if error != nil {
-                    print("MK: Unable to download image from Firebase storage")
-                } else {
-                    print("MK: Image downloaded from Firebase storage")
-                    if let imgData = data {
-
-    
-                        if let img = UIImage(data: imgData) {
-                          DispatchQueue.main.async {
-                            self.imageThumb.image = img
-                            itemFeedVC.imageCache.setObject(img, forKey: URL as NSString)
-                            }
-                            }
-                        }
-                    }
-                })
-            }
+//        if let URL = item.itemImgUrl {
+//            let ref = FIRStorage.storage().reference(forURL: URL)
+//            ref.data(withMaxSize: 2 * 1024 * 1024, completion: { (data, error) in
+//                if error != nil {
+//                    print("MK: Unable to download image from Firebase storage")
+//                } else {
+//                    print("MK: Image downloaded from Firebase storage")
+//                    if let imgData = data {
+//
+//    
+//                        if let img = UIImage(data: imgData) {
+//                          DispatchQueue.main.async {
+//                            self.imageThumb.image = img
+//                            itemFeedVC.imageCache.setObject(img, forKey: URL as NSString)
+//                            }
+//                            }
+//                        }
+//                    }
+//                })
+//            }
      
         
     }//ConfigureCell
-    
-    
-
-    
-    
-    
+ 
 }//ItemCell class
 
 

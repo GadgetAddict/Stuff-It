@@ -9,6 +9,8 @@
 
 import UIKit
 import Firebase
+import M13Checkbox
+import Kingfisher
 
 enum ItemType {
     case new       //create empty item->create expanding buttons
@@ -49,6 +51,7 @@ class ItemDetailsVC: UITableViewController,UIImagePickerControllerDelegate , UIN
     
     var item: Item!
     var box: Box!
+    
     var REF_BOX = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes")
 
     var REF_ITEMS = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/items")
@@ -56,6 +59,7 @@ class ItemDetailsVC: UITableViewController,UIImagePickerControllerDelegate , UIN
     
    
 
+    @IBOutlet weak var checkedOut_CheckBox: M13Checkbox!
     @IBOutlet weak var boxDetailsTableCell: UITableViewCell!
     @IBOutlet weak var fragileSwitch: SevenSwitch!
     @IBOutlet weak var itemNameField: UITextField!
@@ -71,6 +75,14 @@ class ItemDetailsVC: UITableViewController,UIImagePickerControllerDelegate , UIN
     @IBOutlet weak var saveItemButton: UIBarButtonItem!
     @IBOutlet weak var cancelItemButton: UIBarButtonItem!
  
+    let picker = UIImagePickerController()
+    var url : URL!
+     @IBOutlet weak var blurredImage: UIImageView!
+     @IBOutlet weak var myImageView: ItemImageView!
+ 
+    @IBOutlet weak var imageUIView: ItemImageUIView!
+    
+    
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
 //        print("From: \(curPage) ->  Remove All Observers ")
@@ -82,9 +94,15 @@ class ItemDetailsVC: UITableViewController,UIImagePickerControllerDelegate , UIN
     
     override func viewDidLoad() {
         super.viewDidLoad()
-print("From: \(self.curPage) ->  VIEW DID LOAD ")
-        itemChanged = false
+        
+        self.locationCellVisibility(on: false)
 
+
+        itemChanged = false
+        
+//        KingfisherManager.shared.cache.clearMemoryCache()
+//        KingfisherManager.shared.cache.clearDiskCache()
+        
         createNumPadToolbar()
 
         tableView.tableFooterView = UIView()
@@ -99,19 +117,22 @@ print("From: \(self.curPage) ->  VIEW DID LOAD ")
             loadDataFromFirebase()
             
             boxChangeType = .update
-            boxDetailsTableCell.isHidden = false
-            boxDetailsTableCell.isUserInteractionEnabled = true
+            self.locationCellVisibility(on: true)
+
+      
+          
             
         case .existing:
-            
+        
+            print("From: \(self.curPage) ->  existing ")
             self.item = Item(itemKey: itemKeyPassed, itemBoxed: nil, itemCategory: nil)
             loadDataFromFirebase()
             
             
         case .new:
             self.item = Item(itemKey: nil, itemBoxed: false, itemCategory: "Un-Categorized")
-            boxDetailsTableCell.isHidden = true
-            boxDetailsTableCell.isUserInteractionEnabled = false
+
+
             self.title = "New Item"
             
             configureExpandingMenuButton()
@@ -119,16 +140,15 @@ print("From: \(self.curPage) ->  VIEW DID LOAD ")
         }
         
         
+    
+        
         // Image Picker Setup
         picker.delegate = self
-        myImageView.layer.borderWidth = 2.0
-        myImageView.layer.borderColor = UIColor.white.cgColor
-        myImageView.layer.cornerRadius = myImageView.frame.height / 2.0
-        myImageView.clipsToBounds = true
-        
+       
         let blurEffect = UIBlurEffect(style: .light)
         let blurEffectView = UIVisualEffectView(effect: blurEffect)
         blurEffectView.frame = self.view.frame
+ 
         
         blurredImage.addSubview(blurEffectView)
         blurredImage.clipsToBounds = true
@@ -136,7 +156,31 @@ print("From: \(self.curPage) ->  VIEW DID LOAD ")
     }   // END VIEW DID LOAD
     
     
-    
+    func kingfisherGetImage() {
+        
+        if let itemUrl = self.item.itemImgUrl {
+       url = URL(string: itemUrl)
+        }
+        
+        
+        
+        
+        myImageView.kf.indicatorType = .activity
+      myImageView.kf.setImage(with: url,
+                                                                    placeholder: UIImage(named: "qrBoxLogoV2_stroke"),
+                                                                    options: [.transition(ImageTransition.fade(1))],
+                                                                    progressBlock: { receivedSize, totalSize in
+                                                                        
+        },
+                                                                    completionHandler: { image, error, cacheType, imageURL in
+                                                                        self.blurredImage.image = self.myImageView.image
+
+                                                                        self.imageChanged = .existingImage
+
+      })
+
+        
+    }
  
     func completionFunction(completion: () -> ()) {
         
@@ -264,9 +308,7 @@ print("From: \(self.curPage) ->  VIEW DID LOAD ")
     
     
     
-    let picker = UIImagePickerController()
-    @IBOutlet weak var myImageView: UIImageView!
-    @IBOutlet weak var blurredImage: UIImageView!
+
     
     func photoFromLibrary() {
         picker.allowsEditing = false
@@ -369,9 +411,8 @@ func changeFontStyle(labelName: UILabel, isPlaceholder:Bool)  {
      }
     
     func doneButtonAction(){
-//        Part of custom number pad keyboard 
+// QTY field keybaord dismiss
         self.view.endEditing(true)
-    
     }
 
 
@@ -380,50 +421,37 @@ func changeFontStyle(labelName: UILabel, isPlaceholder:Bool)  {
     func loadDataFromFirebase() {
       let ref =  self.REF_ITEMS.child(self.item.itemKey)
  
-    print("From: \(curPage) ->  loadDataFromFirebase :\(ref)")
-
         UIApplication.shared.isNetworkActivityIndicatorVisible = true
-
         
-
         ref.observe(.value, with: { snapshot in
             if let itemSnapshotDict = snapshot.value as? Dictionary<String, AnyObject> {
-                print("getting ItemDetails  FromFB - snapshot \(itemSnapshotDict.values) ")
-                
                 let item = Item(itemKey: self.itemKeyPassed, dictionary: itemSnapshotDict)
-                print("load ITEM From Firebase:   Item created: \(item.itemName)")
+                
                 self.item = item
-
+                    self.kingfisherGetImage()
                 if let itemBoxSnapshotDict = snapshot.childSnapshot(forPath: "/box").value as? Dictionary<String, AnyObject> { // FIRDataSnapshot{
-                    print("load ITEM From Firebase: BOX itemBoxSnapshotDict")
 
                     if let itemBoxNumber = itemBoxSnapshotDict["itemBoxNumber"] {
-                        print("load boxDetails:  if let itemBoxNumber")
-
                         self.item.itemBoxNum = String(describing: itemBoxNumber)
                     }
                     
                     if let itemBoxKey = itemBoxSnapshotDict["itemBoxKey"] {
+                        self.locationCellVisibility(on: true)
+
                         self.item.itemBoxKey = itemBoxKey as? String
+                        
                        self.REF_BOX =   self.REF_BOX.child("\(String(describing: itemBoxKey))")
                         self.boxChangeType = .update
-                        print("From: \(self.curPage) ->  Just changed BoxChangeType to \(self.boxChangeType) ")
-
                         self.loadItemBoxDetailsFromFireBase()
+                        
                     } else {
                         self.boxChangeType = .none
-                        print("From: \(self.curPage) ->  Just changed BoxChangeType to \(self.boxChangeType) ")
-
                     }
 
                     if let itemIsBoxed = itemBoxSnapshotDict["itemIsBoxed"] {
                         self.item.itemIsBoxed = itemIsBoxed as! Bool
-
                     }
                 }
-                
-                
-                self.downloadImageFromFirebase()
                 
                 self.updateViewWithItem()
                 UIApplication.shared.isNetworkActivityIndicatorVisible = false
@@ -433,29 +461,30 @@ func changeFontStyle(labelName: UILabel, isPlaceholder:Bool)  {
         })
     }
     
+ 
    
-    func downloadImageFromFirebase(){
-
-        if let itemImageURL = self.item.itemImgUrl {
-            let ref = FIRStorage.storage().reference(forURL: itemImageURL)
-            ref.data(withMaxSize: 2 * 1024 * 1024, completion: { (data, error) in
-                if error != nil {
-                    print("MK: Unable to download image from Firebase storage")
-                } else {
-                    print("MK: Image downloaded from Firebase storage")
-                    if let imgData = data {
-                        if let img = UIImage(data: imgData) {
-                            self.myImageView.image = img
-                            self.blurredImage.image = img
-                            self.imageChanged = .existingImage
-                            UIApplication.shared.isNetworkActivityIndicatorVisible = false
-
-                        }
-                    }
-                }
-            })
-        }
-    }
+//  not being used anymore - instead i'm using kingfisher    func downloadImageFromFirebase(){
+//
+//        if let itemImageURL = self.item.itemImgUrl {
+//            let ref = FIRStorage.storage().reference(forURL: itemImageURL)
+//            ref.data(withMaxSize: 2 * 1024 * 1024, completion: { (data, error) in
+//                if error != nil {
+//                    print("MK: Unable to download image from Firebase storage")
+//                } else {
+//                    print("MK: Image downloaded from Firebase storage")
+//                    if let imgData = data {
+//                        if let img = UIImage(data: imgData) {
+//                            self.myImageView.image = img
+//                            self.blurredImage.image = img
+//                            self.imageChanged = .existingImage
+//                            UIApplication.shared.isNetworkActivityIndicatorVisible = false
+//
+//                        }
+//                    }
+//                }
+//            })
+//        }
+//    }
     
     func loadItemBoxDetailsFromFireBase() {
         print("From: \(curPage) ->  loadItemBoxDetails")
@@ -546,12 +575,15 @@ print("From: \(curPage) ->  updateFirebaseData ")
     } //end Firebase Data
   
     
-//    MARK: Update Views
+ 
     
+//    MARK: Update Views
+ 
     func updateViewWithItem() {
         print("In the UPATE VIEW   ")
         configureExpandingMenuButton()
 
+        
         
          if let item = self.item {
 
@@ -698,9 +730,11 @@ print("Save Item Tapped ")
         }
     }
     
-    
-    
-    
+    func locationCellVisibility(on: Bool) {
+        
+    self.boxDetailsTableCell.isHidden = !on
+    self.boxDetailsTableCell.isUserInteractionEnabled = on
+    }
  
 //    MARK: ExpandingMenuButton
     fileprivate func configureExpandingMenuButton() {
@@ -737,7 +771,7 @@ print("Save Item Tapped ")
         DispatchQueue.main.async {
             print("ItemDetails: ExpandingButtons main thread dispatch")
             
-            let menuButtonSize: CGSize = CGSize(width: 32.0, height: 32.0)
+            let menuButtonSize: CGSize = CGSize(width: 34.0, height: 34.0)
             
             let menuButton = ExpandingMenuButton(frame: CGRect(origin: CGPoint.zero, size: menuButtonSize), centerImage: UIImage(named: "menuBlue")!, centerHighlightedImage: UIImage(named: "menuBlue")!)
             menuButton.center = CGPoint(x: 30.0, y:  180.0)
@@ -768,8 +802,7 @@ print("Save Item Tapped ")
                 self.showBoxChangeAlertView(title: editBoxAlertTitle, subtitle: editBoxAlertSub, color: editBoxColor)
             }
             
-           
-
+          
             menuButton.addMenuItems([item1, item2, item3]) //
             
             menuButton.willPresentMenuItems = { (menu) -> Void in
@@ -809,12 +842,10 @@ print("Save Item Tapped ")
                 print("From: \(self.curPage) ->  Just changed BoxChangeType to \(self.boxChangeType) ")
                 
                 
-                
-                self.boxDetailsTableCell.isHidden = true
-                self.boxDetailsTableCell.isUserInteractionEnabled = false
-                self.boxNumberHeaderLabel.text = nil
-                self.boxLocationName.text = nil
-                self.boxLocationArea.text = nil
+//                self.locationCellVisibility(on: false)
+//                self.boxNumberHeaderLabel.text = nil
+//                self.boxLocationName.text = nil
+//                self.boxLocationArea.text = nil
                 
                 self.changeBox()
                 
@@ -987,16 +1018,16 @@ print("Save Item Tapped ")
         case .add:
             self.box.addItemDetailsToBox(itemDict: addTonewBoxDict() )
             self.item.addBoxDetailsToItem(box: self.box)
-
+            locationCellVisibility(on: true)
         case .remove:
             self.box.removeItemDetailsFromBox(itemKey: self.item.itemKey)
             self.item.removeBoxDetailsFromItem()
-            
+            locationCellVisibility(on: false)
         case .update:
             self.box.removeItemDetailsFromBox(itemKey: self.item.itemKey)
             self.box.addItemDetailsToBox(itemDict: addTonewBoxDict() )
             self.item.addBoxDetailsToItem(box: self.box) //adds to itemModel and firebase
-
+             locationCellVisibility(on: true)
         case .none:
             print("")
         }

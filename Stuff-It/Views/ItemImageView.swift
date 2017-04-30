@@ -8,27 +8,35 @@
 
 import UIKit
 
-class ItemImageView: UIImageView {
-
-    override func layoutSubviews() {
-            layer.shadowColor = UIColor(red: SHADOW_GRAY, green: SHADOW_GRAY, blue: SHADOW_GRAY, alpha: 0.6).cgColor
-            layer.shadowOpacity = 0.8
-            layer.shadowRadius = 5.0
-            layer.shadowOffset = CGSize(width: 1.0, height: 1.0)
-        
-//        layer.cornerRadius = self.frame.width / 2
-//        clipsToBounds = true
-    }
-    
+class ItemImageUIView: UIView {
     
     override func awakeFromNib() {
         super.awakeFromNib()
         
+            // shadow
+            layer.shadowColor = UIColor.black.cgColor
+            layer.shadowOffset = CGSize(width: 3, height: 3)
+            layer.shadowOpacity = 0.7
+            layer.shadowRadius = 4.0
+            layer.cornerRadius = frame.height / 2.0
+
     }
-//    layer.shadowColor = UIColor(red: SHADOW_GRAY, green: SHADOW_GRAY, blue: SHADOW_GRAY, alpha: 0.6).cgColor
-//    layer.shadowOpacity = 0.8
-//    layer.shadowRadius = 5.0
-//    layer.shadowOffset = CGSize(width: 1.0, height: 1.0)
-//    
-    
 }
+
+class ItemImageView: UIImageView {
+    
+    override func awakeFromNib() {
+        // border
+        layer.borderWidth = 2.0
+        layer.borderColor = UIColor.white.cgColor
+//        Corners
+        layer.cornerRadius = frame.height / 2.0
+        clipsToBounds = true
+
+    }
+}
+
+//   layer.shadowPath = UIBezierPath(roundedRect: layer.bounds, cornerRadius: 10).cgPath
+//        layer.shouldRasterize = true
+//        layer.rasterizationScale = UIScreen.main.scale
+

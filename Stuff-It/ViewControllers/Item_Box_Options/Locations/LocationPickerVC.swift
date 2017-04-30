@@ -35,19 +35,21 @@ class LocationPickerVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDa
         tableView.tableFooterView = UIView()
         tableView.tableFooterView = UIView(frame: CGRect.zero)
       
-        self.REF_LOCATION = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/locations/\(locationType.rawValue)")
+    
         
         
+        
+    } // End ViewDidLoad
+
+    override func viewWillAppear(_ animated: Bool) {
+            self.REF_LOCATION = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/locations/\(locationType.rawValue)")
         loadDataFromFirebase()
         
-//        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Edit", style: UIBarButtonItemStyle.plain, target: self, action: #selector(LocationPickerVC.editButtonPressed))
+    }
     
-    
-      
-        
-               } // End ViewDidLoad
-
-    
+    override func viewWillDisappear(_ animated: Bool) {
+        REF_LOCATION.removeAllObservers()
+    }
  
     
     
@@ -59,11 +61,7 @@ func editButtonPressed(){
         navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Edit", style: UIBarButtonItemStyle.plain, target: self, action: #selector(LocationPickerVC.editButtonPressed))
     }
 }
-//    @IBAction func doneButton(sender: UIBarButtonItem) {
-//        //        self.dismiss(animated: true, completion: nil)
-//        _ = navigationController?.popViewController(animated: true)
-//    
-//    }
+ 
     
     // MARK: - Table view data source
     
@@ -73,30 +71,9 @@ func editButtonPressed(){
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
        
-//        tableView.backgroundView = nil
-//
-//        if locations.count > 0 {
-//            
-//            self.tableView.separatorStyle = UITableViewCellSeparatorStyle.singleLine
-//            return locations.count
-//        } else {
-//            
-//            let emptyStateLabel = UILabel(frame: CGRect(x: 0, y: 40, width: 270, height: 32))
-//            emptyStateLabel.font = emptyStateLabel.font.withSize(14)
-//            emptyStateLabel.text = "Click the ' + ' button to Create a new Location"
-//            emptyStateLabel.textColor = UIColor.lightGray
-//            emptyStateLabel.textAlignment = .center;
-//            tableView.backgroundView = emptyStateLabel
-//            
-//            self.tableView.separatorStyle = UITableViewCellSeparatorStyle.none
-//        }
-//        
-//        return 0
-
-            return locations.count
+         return locations.count
     }
    
-
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     
@@ -162,50 +139,9 @@ func editButtonPressed(){
     
     
     // MARK: UITableViewDelegate Methods
-    func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
-        if editingStyle == .delete {
-        locationIndexPath = indexPath
-        let location  = locations[indexPath.row]
-
-            print("I'm in Commit Editing")
-            switch locationType {
-            case .area :
-                let locationsToDelete = location.locationArea
-                confirmDelete(Item: locationsToDelete!)
-
-            case .detail:
-                let locationsToDelete = location.locationDetail
-                confirmDelete(Item: locationsToDelete!)
-
-            case .name:
-                print("I'm in Commit Editing  CASE NAME")
-
-                let locationsToDelete = location.locationName
-                confirmDelete(Item: locationsToDelete!)
-
-            }
-
-            
-            
- 
-        } else {
-            if editingStyle == .insert {
-                tableView.beginUpdates()
-    
-                //                tableView.insertRowsAtIndexPaths([
-                //                    NSIndexPath(forRow: statuses.count-1, inSection: 0)
-                //                    ], withRowAnimation: .Automatic)
-                //
-                tableView.endUpdates()
-            }
-        }
-        }
-
-
-    
-    
-    
-    func tableView(tableView: UITableView, editActionsForRowAtIndexPath indexPath: NSIndexPath) -> [UITableViewRowAction]? {
+   
+    override func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
+        
     
         locationIndexPath = indexPath as NSIndexPath?
         let locationsToDelete  = locations[indexPath.row]
@@ -241,7 +177,6 @@ func editButtonPressed(){
     
     // Delete Confirmation and Handling
     func confirmDelete(Item: String) {
-//        print("I'm in confirmDelete")
 
         let alert = UIAlertController(title: "Delete Item", message: "Are you sure you want to permanently delete '\(Item)' ?", preferredStyle: .actionSheet)
     
@@ -251,31 +186,26 @@ func editButtonPressed(){
         alert.addAction(DeleteAction)
         alert.addAction(CancelAction)
     
-    
         self.present(alert, animated: true, completion: nil)
     }
     
     func handleDeleteItem(alertAction: UIAlertAction!) -> Void {
-//        print("I'm in handleDeleteItem")
 
         if let indexPath = locationIndexPath {
 
-            tableView.beginUpdates()
-            let location  = locations[indexPath.row]
+             let location  = locations[indexPath.row]
             let locationKey = location.locationKey
-//            print("locationKey is \(locationKey)")
             self.REF_LOCATION.child(locationKey!).removeValue()
             locationIndexPath = nil
-            tableView.endUpdates()
+            tableView.reloadData()
     
         }
     }
     
     
     
-    
-    
     func cancelDeleteItem(alertAction: UIAlertAction!) {
+        self.tableView.isEditing = false
         locationIndexPath = nil
     }
     
@@ -285,18 +215,12 @@ func editButtonPressed(){
     }
     
     
-    
-    
-    
     func showErrorAlert(title: String, msg: String) {
         let alertView = UIAlertController(title: title, message: msg, preferredStyle: .alert)
         alertView.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
         present(alertView, animated: true, completion: nil)
         
     }
-    
-    
-
     
     
     @IBAction func addNewLocation(sender: AnyObject) {
@@ -370,7 +294,6 @@ func editButtonPressed(){
         
         REF_LOCATION.childByAutoId().setValue(location)
         
-        loadDataFromFirebase()
         
     }
     
@@ -395,8 +318,7 @@ func editButtonPressed(){
         }
          print("REF_LOCATION: \(REF_LOCATION!)")
         
-//            self.REF_LOCATION.observe(.value, with: { snapshot in
-                self.REF_LOCATION.observeSingleEvent(of: .value, with: { snapshot in
+            self.REF_LOCATION.observe(.value, with: { snapshot in
 
                 self.locations = []
                 if let snapshots = snapshot.children.allObjects as? [FIRDataSnapshot] {
@@ -430,184 +352,16 @@ func editButtonPressed(){
             
             if segue.identifier == "unwindWithSelectedLocation" {
                 print("saveLocationDetail SEGUE ")
-                
-//
+            }
+
                 }
             }
+        
+        
+        
         var curPage = "LocationPicker"
 
         }
-
-        
-//     func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-//        print("prepareForSegue")
-//
-//        if segue.identifier == "saveLocationDetail" {
-//            print("locationUnwind")
-//
-//            if let cell = sender as? UITableViewCell {
-//                let indexPath = tableView.indexPath(for: cell)
-//                if let index = indexPath?.row {
-//    
-//                    let location = locations[index]
-//                    self.locations  = location
-//                }
-//            }
-//        }
-//    }
-    
-    
-//    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-//        if segue.identifier == "SaveSelectedLocation" {
-//            if let cell = sender as? UITableViewCell {
-//                let indexPath = tableView.indexPath(for: cell)
-//                if let index = indexPath?.row {
-//                    selectedLocation = locations[index]
-//                    
-//                }
-//            }
-//        }
-//    }
-}
-
-
-
-
-//OLD
-//@IBAction func doneButton(sender: UIBarButtonItem) {
-//    //        self.dismiss(animated: true, completion: nil)
-//    _ = navigationController?.popViewController(animated: true)
-//    
-//}
-//
-//@IBAction func addNewColor(sender: AnyObject) {
-//    
-//    var alertController:UIAlertController?
-//    alertController = UIAlertController(title: "New Color",
-//                                        message: "Enter some text below",
-//                                        preferredStyle: .alert)
-//    
-//    alertController!.addTextField(
-//        configurationHandler: {(textField: UITextField!) in
-//            textField.placeholder = "Enter new Color"
-//    })
-//    
-//    let action = UIAlertAction(title: "Submit",
-//                               style: UIAlertActionStyle.default,
-//                               handler: {[weak self]
-//                                (paramAction:UIAlertAction!) in
-//                                if let textFields = alertController?.textFields{
-//                                    let theTextFields = textFields as [UITextField]
-//                                    let enteredText = theTextFields[0].text
-//                                    //
-//                                    
-//                                    self!.writeToFb(enteredText: enteredText!)
-//                                    
-//                                }
-//    })
-//    let cancel = UIAlertAction(title: "Cancel", style: .cancel) { (action) -> Void in
-//        
-//    }
-//    
-//    alertController?.addAction(action)
-//    alertController?.addAction(cancel)
-//    alertController!.view.setNeedsLayout()
-//    self.present(alertController!,
-//                 animated: true,
-//                 completion: nil)
-//}
-//
-//
-//
-//override func viewDidLoad() {
-//    super.viewDidLoad()
-//    
-//    tableView.tableFooterView = UIView()
-//    tableView.tableFooterView = UIView(frame: CGRect.zero)
-//    
-//    
-//    let defaults = UserDefaults.standard
-//    
-//    if (defaults.object(forKey: "CollectionIdRef") != nil) {
-//        print("Getting Defaults")
-//        
-//        if let collectionId = defaults.string(forKey: "CollectionIdRef") {
-//            self.collectionID = collectionId
-//        }
-//    }
-//    
-//    loadDataFromFirebase()
-//    
-//    // End ViewDidLoad
-//    
-//}
-//
-//
-//
-//
-//
-//func writeToFb(enteredText: String) {
-//    print("I'm in postToFirebase")
-//    
-//    let newStatusTrimmed = enteredText.trimmingCharacters(in: NSCharacterSet.whitespaces)
-//    
-//    let location = ["locationName": newStatusTrimmed]
-//    
-//    
-//    let REF_LOCATION = DataService.ds.REF_BASE.child("/collections/\(self.collectionID!)/inventory/locations").childByAutoId()
-//    
-//    REF_LOCATION.setValue(location)
-//    
-//    //                self.dismiss(animated: true, completion: {})
-//    
-//}
-//
-//
-//
-//
-//func loadDataFromFirebase() {
-//    UIApplication.shared.isNetworkActivityIndicatorVisible = true
-//    
-//    self.REF_LOCATION = DataService.ds.REF_BASE.child("/collections/\(self.collectionID!)/inventory/locations/name")
-//    
-//    //         REF_STATUS.queryOrdered(byChild: "statusName").observe(.value, with: { snapshot in
-//    
-//    self.REF_LOCATION.observe(.value, with: { snapshot in
-//        
-//        self.locations = []
-//        if let snapshots = snapshot.children.allObjects as? [FIRDataSnapshot] {
-//            for snap in snapshots {
-//                print("LocationrSnap: \(snap)")
-//                
-//                if let locationDict = snap.value as? Dictionary<String, AnyObject> {
-//                    let key = snap.key
-//                    let location = Location(locationKey: key, dictionary: locationDict)
-//                    self.locations.append(location)
-//                }
-//            }
-//        }
-//        
-//        self.tableView.reloadData()
-//        UIApplication.shared.isNetworkActivityIndicatorVisible = false
-//        
-//    })
-//}
-//
-
-//func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-//    if segue.identifier == "locationUnwind" {
-//        if let cell = sender as? UITableViewCell {
-//            let indexPath = tableView.indexPath(for: cell)
-//            if let index = indexPath?.row {
-//                
-//                let location = locations[index]
-//                self.selectedLocation  = location.locationName
-//            }
-//        }
-//    }
-//}
-//
-//}
 
 
 

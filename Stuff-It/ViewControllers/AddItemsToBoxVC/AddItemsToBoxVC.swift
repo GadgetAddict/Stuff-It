@@ -167,10 +167,10 @@ class AddItemsToBoxVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDat
             let  item = items[indexPath.row]
             var img: UIImage?
             
-            if let url = item.itemImgUrl {
-                img = itemFeedVC.imageCache.object(forKey: url  as NSString)
-            }
-            cell.configureCell(item: item, img: img)
+//            if let url = item.itemImgUrl {
+//                img = itemFeedVC.imageCache.object(forKey: url  as NSString)
+//            }
+             cell.configureCell(item: item) //, img: img)
             
             return cell
         } else {

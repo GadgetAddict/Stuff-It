@@ -17,12 +17,14 @@ class Status {
     
     var statusName: String? {
         return _statusName
-}
+    }
 
     var statusKey: String? {
         return _statusKey
     }
     
+    
+    init(){}
     
     init(statusKey: String?, statusName: String?) {
         self._statusName = statusName
