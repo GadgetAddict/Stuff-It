@@ -11,43 +11,49 @@ import AVFoundation
 import Firebase
 
 
-
-
-
-enum qrScanType {
-    case searchItem     //from itemFeed - scan Item QR for details
-    case searchBox      //from boxFeed - scan Box QR for details
-    case updateItemQR   //from itemDetails - set custom qr
-     case addToBoxFromItemFeed
-    case addToBoxFromItemDetails
+enum qrScanTypes {
+    case ItemSearch
+    case BoxSearch
+    case ItemDetailsBoxSelect
+    case ItemFeedBoxSelect
+    case ItemDetailsQrAssign
+    case BoxDetailsQrAssign
+    case Error
 }
 
-
-
 class qrScannerVC: UIViewController, AVCaptureMetadataOutputObjectsDelegate, SegueHandlerType {
-    
-    var qrScanMode: qrScanType = .addToBoxFromItemFeed
 
+    var qrData: String!
     
-    enum SegueIdentifier: String {
-         case toItemDetailsForItemSearch
-        case toItemDetailsForItemQrEdit
-        case toItemDetailsForBoxSelection
-        case toItemFeedForBoxSelection
-        case toBoxDetails
+    
+    
+    @IBAction func cancelButton(_ sender: UIBarButtonItem) {
+        
+           cancelToItemFeed()
+    }
+
+    func cancelToItemFeed() {
+        
+        segue(segue: .Cancel)
     }
     
-    
-    
-    var qrscannerType: qrScanType!
-    
-    let REF =  DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/")
-    
     @IBOutlet weak var messageLabel:UILabel!
+
+  
+    enum SegueIdentifier: String {
+        case ItemFeed, BoxFeed, ItemDetail, BoxDetails, Cancel  }
     
-    var qrData: String!
+    var qrMode: qrScanTypes = .Error
+    
+    
+    var searchAttempts = 0
+    let REF_BOXES = DataService.ds.REF_INVENTORY.child("boxes")
+    let REF_ITEMS = DataService.ds.REF_INVENTORY.child("items")
+    var REF_QUERY: FIRDatabaseQuery!
+    
+  
    
-    
+
     var captureSession:AVCaptureSession?
     var videoPreviewLayer:AVCaptureVideoPreviewLayer?
     var qrCodeFrameView:UIView?
@@ -57,13 +63,24 @@ class qrScannerVC: UIViewController, AVCaptureMetadataOutputObjectsDelegate, Seg
     let supportedBarCodes = [AVMetadataObjectTypeQRCode]
 
     
-    
+   
+
+    override var prefersStatusBarHidden : Bool {
+        return true
+    }
+
+   
     
 //    let supportedBarCodes = [AVMetadataObjectTypeQRCode, AVMetadataObjectTypeCode128Code, AVMetadataObjectTypeCode39Code, AVMetadataObjectTypeCode93Code, AVMetadataObjectTypeUPCECode, AVMetadataObjectTypePDF417Code, AVMetadataObjectTypeEAN13Code, AVMetadataObjectTypeAztecCode]
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+
+        
+         navigationController?.hidesBarsOnTap = true
+        navigationController?.setNavigationBarHidden(true, animated: true)
+  
         // Get an instance of the AVCaptureDevice class to initialize a device object and provide the video
         // as the media type parameter.
         let captureDevice = AVCaptureDevice.defaultDevice(withMediaType: AVMediaTypeVideo)
@@ -122,15 +139,7 @@ class qrScannerVC: UIViewController, AVCaptureMetadataOutputObjectsDelegate, Seg
         // Dispose of any resources that can be recreated.
     }
     
-    
-    @IBAction func cancelButtonTapped(_ sender: UIBarButtonItem) {
-//        if let navController = self.navigationController {
-//            navController.dismiss(animated: true, completion: nil)
-//        }
-        navigationController!.popToRootViewController(animated: true)
-
-    }
-    
+   
     
     
     
@@ -159,105 +168,41 @@ class qrScannerVC: UIViewController, AVCaptureMetadataOutputObjectsDelegate, Seg
             
             if metadataObj.stringValue != nil {
                 let qrString = metadataObj.stringValue
-                
-                print("STRING VALUE \(String(describing: qrString))")
+                self.qrData = qrString!
+
                 messageLabel.text = qrString
                 captureSession?.stopRunning()
-                self.qrData = qrString!
+             
+                print("Finished scanning - mode is \(qrMode)")
+                switch qrMode{
+                    
+                case .ItemSearch, .ItemFeedBoxSelect, .ItemDetailsQrAssign:
+                    segue(segue: .ItemFeed)
+                    
+                case .BoxSearch, .BoxDetailsQrAssign:
+                    segue(segue: .BoxFeed)
                 
-                getObjectFromFireBase(qrString: qrString!)
+                default:
+                 print(" Error in QR Scanning")
+                }
+
                 
-//                 let serialQueue = DispatchQueue(label: "com.queue.Serial")
-//                   serialQueue.async {
-
-//           DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes/\(qrString!)").
-
-//                let boxRef = self.REF.child("boxes/\(qrString!)")
-//        boxRef.observeSingleEvent(of: .value, with: { snapshot in
-//                     if let boxDict = snapshot.value as? Dictionary<String, AnyObject> {
- //                   self.scannedBox = Box(boxKey: qrString!, dictionary: boxDict)
-//                        print("scannedBox Cat VALUE \(self.scannedBox.boxCategory)")
-//                        self.performSegue(withIdentifier: "BoxDetails_SEGUE", sender: self)
-//                  }
-//                })
-//
                 }
             }
         }
 
-    func getObjectFromFireBase(qrString: String)  {
-
-        
-        var REF =  DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/")
-        
-        switch qrScanMode {
- 
-            
-        case .searchItem:     //from itemFeed - scan Item QR for details
-            REF = REF.child("items/\(qrString)")
-            
-            performSegueWithIdentifier(segueIdentifier: .toItemDetailsForItemSearch, sender: self)
-            print("")
-        case .searchBox :     //from boxFeed - scan Box QR for details
-            REF = REF.child("boxes/\(qrString)")
-            performSegueWithIdentifier(segueIdentifier: .toBoxDetails, sender: self)
-            print("")
-        case .updateItemQR:   //from itemDetails - set custom qr
-            performSegueWithIdentifier(segueIdentifier: .toItemDetailsForItemQrEdit, sender: self)
-            print("")
-        case .addToBoxFromItemFeed:       //from item
-            performSegueWithIdentifier(segueIdentifier: .toItemFeedForBoxSelection, sender: self)
-            print("")
-        case .addToBoxFromItemDetails:       //from itemDet
-            performSegueWithIdentifier(segueIdentifier: .toItemDetailsForBoxSelection, sender: self)
-            print("")
-        }
-        
-    }
-    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
   
+       }
     
-        override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-            //        Create the object so UNWIND back to presenting VC can get item
-            
-            
- 
-            //        print("Back to box from QR ")
-            //        if let QrVC = segue.source as? qrScannerVC {
-            //             if let selectedBox = QrVC.scannedBox  { //passed from QRVC
-            //             self.box = selectedBox
-            ////                boxesREF = (self.REF_BOXES.child(query.child).queryEqual(toValue: query.value))
-            ////                self.query = (child: "boxNum", value: selectedBox)
-            //
-            //                self.boxIsNew = false
-            //             }
-            //         }
-            //    }
-            
+    func segue(segue: SegueIdentifier) {
+        print("SEGUE out of QR using \(segue)")
+        performSegueWithIdentifier(segueIdentifier: segue, sender: self)
+//        self.performSegueWithIdentifier(segueIdentifier: segue, sender: self)
 
-            switch segueIdentifierForSegue(segue: segue) {
-            case .toItemDetailsForItemSearch:
-                print("")
-            case .toItemDetailsForItemQrEdit:
-                print("")
-            case .toItemDetailsForBoxSelection:
-                print("")
-            case .toItemFeedForBoxSelection:
-                print("")
-            case .toBoxDetails:
-                print("")
-              
-
-            }
-            
-//        if segue.identifier == "BoxDetails_SEGUE" {
-//            print("Box Details from QR Segue")
-//            if let boxDetailsVC = segue.destination as? BoxDetails {
-//            boxDetailsVC.box = self.scannedBox
-//            boxDetailsVC.boxSegueType = .qr
-//            }
-        
     }
+    
+   
 }
 
 

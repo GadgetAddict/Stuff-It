@@ -10,8 +10,17 @@
 import UIKit
 import Firebase
 
-class SettingsVC: UITableViewController {
+class SettingsVC: UITableViewController, SegueHandlerType {
 
+    
+    enum SegueIdentifier: String {
+        case Color
+        case Location
+        case Status
+        case Category
+        case QR
+    }
+    
         override func viewDidLoad() {
         super.viewDidLoad()
                     
@@ -95,7 +104,34 @@ class SettingsVC: UITableViewController {
     
     }
 
+    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        
+             
+            switch segueIdentifierForSegue(segue: segue) {
+            case .Category:
+                if let categoryDetails = segue.destination as? CategoryDetailsVC {
+                    categoryDetails.categorySelectionOption = .settings
+                }
+            case .Color:
+                if let colorsVC = segue.destination as? ColorTableVC {
+                    colorsVC.colorLoadsFrom = .settings
+                }
+            case .Location:
+                if let locationsVC = segue.destination as? LocationDetailsVC {
+                    locationsVC.locationSelection = .settings
+                }
+            case .Status:
+                  print("")
+            default:
+                print("")
+                
+                
+            }
+        }
+        
+        
+  /*  override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         print("prepareForSegue FROM SETTINGS")
         
         if let colorsVC = segue.destination as? ColorTableVC {
@@ -120,22 +156,14 @@ class SettingsVC: UITableViewController {
                 }
         }
         }
-        
+     */
+    
+    
+    
         var curPage = "SettingsVC"
-}
+
     
     
-//     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-//        
-//        
-//        if let locationsVC = segue.destination as? LocationsVC {
-//            print("destination as? LocationPickerVC")
-//            
-//            if segue.identifier == "locationSettings" {
-//                locationsVC.fromSettings = true
-//                
-//                }
-//            }
-//        }
+
 }
 

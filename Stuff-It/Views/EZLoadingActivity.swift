@@ -14,18 +14,9 @@ public struct EZLoadingActivity {
     // Feel free to edit these variables
     //==========================================================================================================
     public struct Settings {
-        
-        /*
-         public static var BackgroundColor = UIColor(red: 227/255, green: 232/255, blue: 235/255, alpha: 1.0)
-         public static var ActivityColor = UIColor(red: 0/255, green: 0/255, blue: 0/255, alpha: 1.0)
-         public static var TextColor = UIColor(red: 80/255, green: 80/255, blue: 80/255, alpha: 1.0)
-         */
-        
-        // I've changed the colors for the tutorial - default ones are above
-        public static var BackgroundColor = UIColor.darkText
-        public static var ActivityColor = UIColor.white
-        public static var TextColor = UIColor.white
-        
+        public static var BackgroundColor = UIColor(red: 227/255, green: 232/255, blue: 235/255, alpha: 1.0)
+        public static var ActivityColor = UIColor(red: 0/255, green: 0/255, blue: 0/255, alpha: 1.0)
+        public static var TextColor = UIColor(red: 80/255, green: 80/255, blue: 80/255, alpha: 1.0)
         public static var FontName = "HelveticaNeue-Light"
         // Other possible stuff: ✓ ✓ ✔︎ ✕ ✖︎ ✘
         public static var SuccessIcon = "✔︎"
@@ -36,6 +27,7 @@ public struct EZLoadingActivity {
         public static var FailColor = UIColor(red: 255/255, green: 75/255, blue: 56/255, alpha: 1.0)
         public static var ActivityWidth = UIScreen.ScreenWidth / Settings.WidthDivision
         public static var ActivityHeight = ActivityWidth / 3
+        public static var ShadowEnabled = true
         public static var WidthDivision: CGFloat {
             get {
                 if UIDevice.current.userInterfaceIdiom == UIUserInterfaceIdiom.pad {
@@ -45,12 +37,16 @@ public struct EZLoadingActivity {
                 }
             }
         }
+        public static var LoadOverApplicationWindow = false
+        public static var DarkensBackground = false
     }
     
     fileprivate static var instance: LoadingActivity?
     fileprivate static var hidingInProgress = false
+    fileprivate static var overlay: UIView!
     
     /// Disable UI stops users touch actions until EZLoadingActivity is hidden. Return success status
+    @discardableResult
     public static func show(_ text: String, disableUI: Bool) -> Bool {
         guard instance == nil else {
             print("EZLoadingActivity: You still have an active activity, please stop that before creating a new one")
@@ -64,15 +60,23 @@ public struct EZLoadingActivity {
         // Separate creation from showing
         instance = LoadingActivity(text: text, disableUI: disableUI)
         DispatchQueue.main.async {
+            if Settings.DarkensBackground {
+                if overlay == nil {
+                    overlay = UIView(frame: UIApplication.shared.keyWindow!.frame)
+                }
+                overlay.backgroundColor = UIColor.black.withAlphaComponent(0)
+                topMostController?.view.addSubview(overlay)
+                UIView.animate(withDuration: 0.2, animations: {overlay.backgroundColor = overlay.backgroundColor?.withAlphaComponent(0.5)})
+            }
             instance?.showLoadingActivity()
         }
         return true
     }
-    
+    @discardableResult
     public static func showWithDelay(_ text: String, disableUI: Bool, seconds: Double) -> Bool {
         let showValue = show(text, disableUI: disableUI)
         delay(seconds) { () -> () in
-             let _ =  hide(success: true, animated: false)
+            _ = hide(true, animated: false)
         }
         return showValue
     }
@@ -84,14 +88,15 @@ public struct EZLoadingActivity {
         }
         instance = LoadingActivity(text: text, disableUI: disableUI)
         DispatchQueue.main.async {
-            instance?.showLoadingWithController(controller);
+            instance?.showLoadingWithController(controller)
         }
         
-        return true;
+        return true
     }
     
     /// Returns success status
-    public static func hide(success: Bool? = nil, animated: Bool = false) -> Bool {
+    @discardableResult
+    public static func hide(_ success: Bool? = nil, animated: Bool = false) -> Bool {
         guard instance != nil else {
             print("EZLoadingActivity: You don't have an activity instance")
             return false
@@ -104,10 +109,18 @@ public struct EZLoadingActivity {
         
         if !Thread.current.isMainThread {
             DispatchQueue.main.async {
-                instance?.hideLoadingActivity(success: success, animated: animated)
+                instance?.hideLoadingActivity(success, animated: animated)
             }
         } else {
-            instance?.hideLoadingActivity(success: success, animated: animated)
+            instance?.hideLoadingActivity(success, animated: animated)
+        }
+        
+        if overlay != nil {
+            UIView.animate(withDuration: 0.2, animations: {
+                overlay.backgroundColor = overlay.backgroundColor?.withAlphaComponent(0)
+            }, completion: { _ in
+                overlay.removeFromSuperview()
+            })
         }
         
         return true
@@ -127,12 +140,14 @@ public struct EZLoadingActivity {
         
         convenience init(text: String, disableUI: Bool) {
             self.init(frame: CGRect(x: 0, y: 0, width: Settings.ActivityWidth, height: Settings.ActivityHeight))
-            center = CGPoint(x: UIScreen.main.bounds.midX, y: UIScreen.main.bounds.midY)
+            center = CGPoint(x: topMostController!.view.bounds.midX, y: topMostController!.view.bounds.midY)
             autoresizingMask = [.flexibleTopMargin, .flexibleLeftMargin, .flexibleBottomMargin, .flexibleRightMargin]
             backgroundColor = Settings.BackgroundColor
             alpha = 1
             layer.cornerRadius = 8
-            createShadow()
+            if Settings.ShadowEnabled {
+                createShadow()
+            }
             
             let yPosition = frame.height/2 - 20
             
@@ -159,14 +174,31 @@ public struct EZLoadingActivity {
             addSubview(activityView)
             addSubview(textLabel)
             
-            topMostController!.view.addSubview(self)
+            //make it smoothly
+            self.alpha = 0
+            
+            if Settings.LoadOverApplicationWindow {
+                UIApplication.shared.windows.first?.addSubview(self)
+            } else {
+                topMostController!.view.addSubview(self)
+            }
+            
+            //make it smoothly
+            UIView.animate(withDuration: 0.2, animations: {
+                self.alpha = 1
+            })
         }
         
         func showLoadingWithController(_ controller:UIViewController){
             addSubview(activityView)
             addSubview(textLabel)
             
-            controller.view.addSubview(self);
+            //make it smoothly
+            self.alpha = 0
+            controller.view.addSubview(self)
+            UIView.animate(withDuration: 0.2, animations: {
+                self.alpha = 1
+            })
         }
         
         func createShadow() {
@@ -188,7 +220,7 @@ public struct EZLoadingActivity {
             return myBezier
         }
         
-        func hideLoadingActivity(success: Bool?, animated: Bool) {
+        func hideLoadingActivity(_ success: Bool?, animated: Bool) {
             hidingInProgress = true
             if UIDisabled {
                 UIApplication.shared.endIgnoringInteractionEvents()
@@ -231,7 +263,11 @@ public struct EZLoadingActivity {
                 UIView.animate(withDuration: animationDuration, animations: {
                     self.icon.alpha = 1
                 }, completion: { (value: Bool) in
-                    self.callSelectorAsync(#selector(UIView.removeFromSuperview), delay: animationDuration)
+                    UIView.animate(withDuration: 0.2, animations: {
+                        self.alpha = 0
+                    }, completion: { (success) in
+                        self.callSelectorAsync(#selector(UIView.removeFromSuperview), delay: animationDuration)
+                    })
                     instance = nil
                     hidingInProgress = false
                 })
@@ -297,4 +333,3 @@ private var topMostController: UIViewController? {
     
     return presentedVC
 }
-

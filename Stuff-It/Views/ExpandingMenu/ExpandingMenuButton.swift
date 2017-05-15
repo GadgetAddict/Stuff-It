@@ -277,13 +277,13 @@ open class ExpandingMenuButton: UIView, UIGestureRecognizerDelegate {
         switch self.expandingDirection {
         case .top:
             return CGPoint(
-                x: self.centerButton.center.x + CGFloat(cosf((Float(angle) + 1.0) * Float(M_PI))) * itemExpandRadius,
-                y: self.centerButton.center.y + CGFloat(sinf((Float(angle) + 1.0) * Float(M_PI))) * itemExpandRadius
+                x: self.centerButton.center.x + CGFloat(cosf((Float(angle) + 1.0) * Float.pi)) * itemExpandRadius,
+                y: self.centerButton.center.y + CGFloat(sinf((Float(angle) + 1.0) * Float.pi)) * itemExpandRadius
             )
         case .bottom:
             return CGPoint(
-                x: self.centerButton.center.x + CGFloat(cosf(Float(angle) * Float(M_PI))) * itemExpandRadius,
-                y: self.centerButton.center.y + CGFloat(sinf(Float(angle) * Float(M_PI))) * itemExpandRadius
+                x: self.centerButton.center.x + CGFloat(cosf(Float(angle) * Float.pi)) * itemExpandRadius,
+                y: self.centerButton.center.y + CGFloat(sinf(Float(angle) * Float.pi)) * itemExpandRadius
             )
         }
     }

@@ -229,7 +229,7 @@ internal class M13CheckboxCheckPathGenerator: M13CheckboxPathGenerator {
             path.addArc(withCenter: br,
                         radius: cornerRadius,
                         startAngle: 0.0,
-                        endAngle: CGFloat(M_PI_2),
+                        endAngle: CGFloat.pi/2,
                         clockwise: true)
         }
         // Bottom side.
@@ -239,8 +239,8 @@ internal class M13CheckboxCheckPathGenerator: M13CheckboxPathGenerator {
         if cornerRadius != 0 {
             path.addArc(withCenter: bl,
                         radius: cornerRadius,
-                        startAngle: CGFloat(M_PI_2),
-                        endAngle: CGFloat(M_PI),
+                        startAngle: CGFloat.pi/2,
+                        endAngle: CGFloat.pi,
                         clockwise: true)
         }
         // Left side.

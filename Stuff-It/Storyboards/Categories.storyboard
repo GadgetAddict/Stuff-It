@@ -46,7 +46,7 @@
                                             </subviews>
                                         </tableViewCellContentView>
                                         <connections>
-                                            <segue destination="w1g-jX-pyh" kind="show" identifier="showCatList" id="gSJ-Bw-yGe">
+                                            <segue destination="w1g-jX-pyh" kind="show" identifier="Category" id="gSJ-Bw-yGe">
                                                 <nil key="action"/>
                                             </segue>
                                         </connections>
@@ -80,7 +80,7 @@
                                         </tableViewCellContentView>
                                         <inset key="separatorInset" minX="0.0" minY="0.0" maxX="0.0" maxY="0.0"/>
                                         <connections>
-                                            <segue destination="w1g-jX-pyh" kind="show" identifier="showSubcatList" id="68v-9d-ngx"/>
+                                            <segue destination="w1g-jX-pyh" kind="show" identifier="Subcategory" id="68v-9d-ngx"/>
                                         </connections>
                                     </tableViewCell>
                                 </cells>
@@ -109,10 +109,9 @@
                         <outlet property="categoryNameLabel" destination="4Vj-ZF-nQN" id="Unb-tt-cS7"/>
                         <outlet property="subCatTableCell" destination="bVV-ft-2Dx" id="9lg-79-kxd"/>
                         <outlet property="subCcategoryNameLabel" destination="o4T-KY-IAA" id="bWk-fn-ChA"/>
-                        <segue destination="jD3-Jn-xDV" kind="unwind" identifier="unwind_saveCategoryToItemDetails" unwindAction="unwind_saveCategoryToItemDetails:" id="hub-KJ-NQb"/>
-                        <segue destination="jD3-Jn-xDV" kind="unwind" identifier="unwind_CancelToItemDetails" unwindAction="unwind_CancelToItemDetails:" id="5os-cO-Giz"/>
-                        <segue destination="jD3-Jn-xDV" kind="unwind" identifier="unwindCancelToSettings" unwindAction="unwindCancelToSettings:" id="vQM-XU-PXt"/>
-                        <segue destination="jD3-Jn-xDV" kind="unwind" identifier="unwind_CancelToItemDetails" unwindAction="unwind_CancelToItemDetails:" id="L1t-zk-FtT"/>
+                        <segue destination="jD3-Jn-xDV" kind="unwind" identifier="Item" unwindAction="unwind_saveCategoryToItemDetails:" id="hub-KJ-NQb"/>
+                        <segue destination="jD3-Jn-xDV" kind="unwind" identifier="CancelItem" unwindAction="unwind_CancelToItemDetails:" id="5os-cO-Giz"/>
+                        <segue destination="jD3-Jn-xDV" kind="unwind" identifier="Settings" unwindAction="unwindCancelToSettings:" id="vQM-XU-PXt"/>
                     </connections>
                 </tableViewController>
                 <exit id="jD3-Jn-xDV" userLabel="Exit" sceneMemberID="exit"/>
@@ -177,10 +176,10 @@
                         </barButtonItem>
                     </navigationItem>
                     <connections>
-                        <segue destination="WhB-TC-QhH" kind="unwind" identifier="unwindToBoxDetailsWithCategory" unwindAction="unwindToBoxDetailsWithCategory:" id="lPK-rI-CdQ"/>
-                        <segue destination="WhB-TC-QhH" kind="unwind" identifier="unwindWithSelectedCategory" unwindAction="unwindWithSelectedCategory:" id="9v4-pW-31Q"/>
-                        <segue destination="WhB-TC-QhH" kind="unwind" identifier="unwindCancelCategoryPicker" unwindAction="unwindCancelCategoryPicker:" id="oBt-2i-Zjy"/>
-                        <segue destination="WhB-TC-QhH" kind="unwind" identifier="unwindToBoxDetailsCancel" unwindAction="unwindToBoxDetailsCancel:" id="qAj-gf-FlU"/>
+                        <segue destination="WhB-TC-QhH" kind="unwind" identifier="Unwind" unwindAction="CategoryUnwindWithSelection:" id="REZ-ma-F2B"/>
+                        <segue destination="WhB-TC-QhH" kind="unwind" identifier="Cancel" unwindAction="CategoryUnwindCancel:" id="q1Z-q3-eTS"/>
+                        <segue destination="WhB-TC-QhH" kind="unwind" identifier="BoxCancel" unwindAction="unwindToBoxDetailsCancel:" id="Yts-xQ-bkG"/>
+                        <segue destination="WhB-TC-QhH" kind="unwind" identifier="Box" unwindAction="unwindToBoxDetailsWithCategory:" id="d5z-vf-69x"/>
                     </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="fET-ii-TbA" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -213,6 +212,6 @@
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="68v-9d-ngx"/>
+        <segue reference="gSJ-Bw-yGe"/>
     </inferredMetricsTieBreakers>
 </document>

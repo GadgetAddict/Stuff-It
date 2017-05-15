@@ -11,16 +11,24 @@ import Firebase
 import DZNEmptyDataSet
 
 enum CategoryType:String {
-    case category
-    case subcategory
+    case Category
+    case Subcategory
 }
 
 
-class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDataSetDelegate {
+class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDataSetDelegate, SegueHandlerType {
+    
+    enum SegueIdentifier: String {
+        case Unwind
+        case Cancel
+        case BoxCancel
+        case Box
+    }
+    
     var passedCategory: String!
     var selectedCategory: Category!
     var categories = [Category]()
-    var categoryType = CategoryType.category
+    var categoryType = CategoryType.Category
     var categorySelection: CategorySelection = .item
     var categoryIndexPath: NSIndexPath? = nil
     var REF_CATEGORY: FIRDatabaseReference!
@@ -29,7 +37,9 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated) // No need for semicolon
     
-        self.REF_CATEGORY = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/categories/\(categoryType.rawValue)")
+        setupPage()
+        
+        self.REF_CATEGORY = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/categories/\(categoryType.rawValue.lowercased())")
         
         loadDataFromFirebase()
 
@@ -38,8 +48,6 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
  
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        setupPage()
         
         self.tableView.emptyDataSetSource = self
         self.tableView.emptyDataSetDelegate = self
@@ -52,15 +60,7 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
     
     func setupPage() {
         
-        
-        switch  categoryType {
-        case .category:
-            self.title = "Categories"
-
-        case .subcategory:
-            self.title = "Subcategories"
-
-        }
+          self.title =  categoryType.rawValue
         
         switch categorySelection {
         case .item:
@@ -69,31 +69,25 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
             print("This is the BOX Category selection")
 
         case .settings:
-            if categoryType == .subcategory {
+            if categoryType == .Subcategory {
                 tableView.allowsSelection = false
             }
         }
     }
     
     
+    func segue(segue: SegueIdentifier) {
+        performSegueWithIdentifier(segueIdentifier: segue , sender: self)
+    }
     
+   
     @IBAction func backButtonTapped(_ sender: UIBarButtonItem) {
         switch categorySelection {
-        case .item:
-            self.performSegue(withIdentifier: "unwindCancelCategoryPicker", sender: self)
-            
-        case .box:
-            self.performSegue(withIdentifier: "unwindToBoxDetailsCancel", sender: self)
-            
-        case .settings:
-            self.performSegue(withIdentifier: "unwindCancelCategoryPicker", sender: self)
-
- 
-            
-            
+           case .box:
+                segue(segue: .BoxCancel)
+            default:
+                segue(segue: .Cancel)
         }
-
-        
     }
     
     
@@ -154,17 +148,17 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
         print("CALLING THE SEGUE CELL")
         self.selectedCategory = categories[indexPath.row]
         
+        
+        performSegueWithIdentifier(segueIdentifier: .Unwind, sender: self)
+
         switch categorySelection {
-        case .item:
-            self.performSegue(withIdentifier: "unwindWithSelectedCategory", sender: self)
-
+ 
         case .box:
-            self.performSegue(withIdentifier: "unwindToBoxDetailsWithCategory", sender: self)
-
-        case .settings:
-            self.performSegue(withIdentifier: "unwindWithSelectedCategory", sender: self)
-
-          }
+            segue(segue: .Box)
+        default:
+            segue(segue: .Unwind)
+        }
+        
     }
     
     
@@ -279,9 +273,9 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
         
         switch categoryType {
             
-        case .category:
+        case .Category:
             exampleText = "Holiday, Christmas, Kitchen, Outdoor"
-        case .subcategory:
+        case .Subcategory:
             exampleText = "Lights, Decorations, Glasses, Camping"
             
         }
@@ -343,7 +337,7 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
     
     func loadDataFromFirebase() {
         
-        if categoryType == .subcategory {
+        if categoryType == .Subcategory {
             self.REF_CATEGORY = self.REF_CATEGORY.child(passedCategory!)
         }
         UIApplication.shared.isNetworkActivityIndicatorVisible = true
@@ -367,6 +361,11 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
             
         })
     }
+    
+    
+ 
+    
+ 
     
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {

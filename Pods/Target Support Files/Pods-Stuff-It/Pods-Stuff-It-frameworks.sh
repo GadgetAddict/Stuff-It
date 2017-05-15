@@ -91,6 +91,7 @@ if [[ "$CONFIGURATION" == "Debug" ]]; then
   install_framework "$BUILT_PRODUCTS_DIR/Kingfisher/Kingfisher.framework"
   install_framework "$BUILT_PRODUCTS_DIR/M13Checkbox/M13Checkbox.framework"
   install_framework "$BUILT_PRODUCTS_DIR/NextResponderTextField/NextResponderTextField.framework"
+  install_framework "$BUILT_PRODUCTS_DIR/PDFGenerator/PDFGenerator.framework"
   install_framework "$BUILT_PRODUCTS_DIR/QRCode/QRCode.framework"
 fi
 if [[ "$CONFIGURATION" == "Release" ]]; then
@@ -101,5 +102,6 @@ if [[ "$CONFIGURATION" == "Release" ]]; then
   install_framework "$BUILT_PRODUCTS_DIR/Kingfisher/Kingfisher.framework"
   install_framework "$BUILT_PRODUCTS_DIR/M13Checkbox/M13Checkbox.framework"
   install_framework "$BUILT_PRODUCTS_DIR/NextResponderTextField/NextResponderTextField.framework"
+  install_framework "$BUILT_PRODUCTS_DIR/PDFGenerator/PDFGenerator.framework"
   install_framework "$BUILT_PRODUCTS_DIR/QRCode/QRCode.framework"
 fi

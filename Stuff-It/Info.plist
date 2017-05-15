@@ -2,6 +2,19 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>UIAppFonts</key>
+	<array>
+		<string>SFDisplay-Light.otf</string>
+		<string>SFText-Light.otf</string>
+		<string>SFText-Regular.otf</string>
+		<string>SFText-Semibold.otf</string>
+		<string>SFText-Heavy.otf</string>
+		<string>SFText-Bold.otf</string>
+		<string>SFDisplay-Black.otf</string>
+		<string>SFDisplay-Thin.otf</string>
+		<string>SFDisplay-Ultralight.otf</string>
+		<string>SFDisplay-Regular.otf</string>
+	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleExecutable</key>

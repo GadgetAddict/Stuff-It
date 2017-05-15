@@ -39,6 +39,11 @@
 			<key>isShown</key>
 			<false/>
 		</dict>
+		<key>PDFGenerator.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false/>
+		</dict>
 		<key>Pods-Stuff-It.xcscheme</key>
 		<dict>
 			<key>isShown</key>
@@ -52,16 +57,6 @@
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
-		<key>0085FEAFD65E5E90DA01CB71753E8C5A</key>
-		<dict>
-			<key>primary</key>
-			<true/>
-		</dict>
-		<key>128E72DC9BD10F306BEFE00E7F50B738</key>
-		<dict>
-			<key>primary</key>
-			<true/>
-		</dict>
 		<key>20A9DD9ABBF08BC57372A26C35327BF1</key>
 		<dict>
 			<key>primary</key>
@@ -77,12 +72,27 @@
 			<key>primary</key>
 			<true/>
 		</dict>
+		<key>BF114087DA2065D38A2BB4DAA4BBCC4D</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
 		<key>C4944FEC314D1A66588651D006273ADE</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
+		<key>C987ABC0516F08EB4031980AAE831F95</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
 		<key>D386C75EFD4F03725E4EFB866B600B9A</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>E2A173E0AF7925FF694AEEE6AB1EB959</key>
 		<dict>
 			<key>primary</key>
 			<true/>

@@ -13,11 +13,24 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     let loginToApp = "SIGNED_IN"
     var handle: FIRAuthStateDidChangeListenerHandle?
     var activeUser: FIRUser!
-    
-    
+   
  
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+       
+        
+        
+      
+//        for family: String in UIFont.familyNames
+//        {
+//            print("\(family)")
+//            for names: String in UIFont.fontNames(forFamilyName: family)
+//            {
+//                print("== \(names)")
+//            }
+//        }
+        
+        
         print("Login viewDidAppear.")
         var walkThrough: Bool!
         
@@ -33,6 +46,8 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
             print("walkthrough already viewed")
             
             handle = FIRAuth.auth()?.addStateDidChangeListener({ (auth:FIRAuth, user:FIRUser?) in
+                let _ = EZLoadingActivity.show("Logging In", disableUI: true)
+
                 if let user = user {
                     if(self.activeUser != user){
                         self.activeUser = user
@@ -43,13 +58,15 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
                                 
                                 COLLECTION_ID = collectionRefString
                                 print("Login VC: PERFORM SEGUE")
+                                let _ = EZLoadingActivity.hide(true, animated: true)
                                 self.segue()
-                                //                                                self.performSegue(withIdentifier: self.loginToApp, sender:nil)
+                                
                             }
                         })
                         
                     }
                 } else {
+                    EZLoadingActivity.hide(false, animated: true)
                     print("-> NOT LOGGED IN")
                 }
             })
@@ -77,21 +94,10 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+   
         
-//       let setDefaultCollectionQueue = DispatchQueue(label: "com.michael.loginSetCollectionID", qos: DispatchQoS.userInteractive)
-        
-
-        
+       
  
-//            // 1
-//            FIRAuth.auth()!.addStateDidChangeListener() { auth, user in
-//                // 2
-//                if user != nil {
-// 
-//                    self.performSegue(withIdentifier: "SIGNED_IN", sender:nil)
-// 
-//            }
-//        }
     
     }
     

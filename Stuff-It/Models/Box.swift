@@ -116,10 +116,8 @@ class Box  {
     
  
     
-    init() {
+    init() {}
         
-    }
-    
     
     init (boxKey: String, boxNumber: Int?){
         
@@ -193,19 +191,16 @@ class Box  {
     }
  
     
-    func addItemDetailsToBox(itemDict:Dictionary<String, AnyObject>) {
+    func addItemDetailsToBox(itemKey: String) {
   
-            if let itemKey = itemDict["itemKey"], let itemName = itemDict["itemName"], let boxKey =  itemDict["itemBoxKey"] {
-
-        _boxRef = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes/\(boxKey)/items/\(itemKey)")
+        
+        
+        _boxRef = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes/\(boxKey)/items")
 
         _boxRef.setValue([
-            "itemName" :  itemName
+            itemKey :  true
             ])
- 
-        } else {
-            print("One or more of the optionals don’t contain a value")
-        }
+  
     }
     
  

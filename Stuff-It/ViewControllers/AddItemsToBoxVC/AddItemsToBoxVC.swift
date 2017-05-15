@@ -11,7 +11,7 @@ import UIKit
 import DZNEmptyDataSet
 
 class AddItemsToBoxVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDataSetDelegate {
-        
+    
     var items = [Item]()
     var boxsCurrentItems = [Item]()
     var selectedItems = [Item]()
@@ -23,7 +23,7 @@ class AddItemsToBoxVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDat
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-                loadDataFromFirebase()
+//                loadDataFromFirebase()
     }
     
     override func viewDidLoad() {
@@ -42,11 +42,11 @@ class AddItemsToBoxVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDat
         //  MARK: Save Data To FireBase
         for item in selectedItems {
             
-            func addTonewBoxDict() -> Dictionary<String, AnyObject> {
-                return ["itemBoxKey": self.box.boxKey as AnyObject , "itemName": item.itemName as AnyObject, "itemKey" : item.itemKey as AnyObject]
-            }
+//            func addTonewBoxDict() -> Dictionary<String, AnyObject> {
+//                return ["itemBoxKey": self.box.boxKey as AnyObject , "itemName": item.itemName as AnyObject, "itemKey" : item.itemKey as AnyObject]
+//            }
             
-            self.box.addItemDetailsToBox(itemDict: addTonewBoxDict() )
+            self.box.addItemDetailsToBox(itemKey: item.itemKey )
             item.addBoxDetailsToItem(box: self.box)
       }
             _ = navigationController?.popViewController(animated: true)
@@ -165,7 +165,7 @@ class AddItemsToBoxVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDat
         if let cell = tableView.dequeueReusableCell(withIdentifier: "ItemCell", for: indexPath) as? ItemCell {
     
             let  item = items[indexPath.row]
-            var img: UIImage?
+//            var img: UIImage?
             
 //            if let url = item.itemImgUrl {
 //                img = itemFeedVC.imageCache.object(forKey: url  as NSString)
@@ -205,6 +205,6 @@ class AddItemsToBoxVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDat
 //            if let sr = tableView.indexPathsForSelectedRows {
 //            }
         }
-           var curPage = "AddItemsToBox" 
+                var curPage = "AddItemsToBox" 
 }
  

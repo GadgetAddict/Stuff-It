@@ -37,12 +37,17 @@ enum BoxChangeType{
     }
 }
 
- 
- 
- 
-class ItemDetailsVC: UITableViewController,UIImagePickerControllerDelegate , UINavigationControllerDelegate, UITextFieldDelegate {
-    
+//MARK: hide tab bar - stackoverflow.com/questions/27008737/how-do-i-hide-show-tabbar-when-tapped-using-swift-in-ios8
 
+ 
+class ItemDetailsVC: UITableViewController,UIImagePickerControllerDelegate , UINavigationControllerDelegate, UITextFieldDelegate, SegueHandlerType {
+    
+    enum SegueIdentifier: String {
+        case ShowBoxList
+        case SearchBoxQR
+        case ShowCategory
+        case editQR
+    }
     
     var imageChanged = ImageStatus.noImage
     var itemType = ItemType.new
@@ -65,7 +70,6 @@ class ItemDetailsVC: UITableViewController,UIImagePickerControllerDelegate , UIN
     @IBOutlet weak var itemNameField: UITextField!
     @IBOutlet weak var itemCategory: UILabel!
     @IBOutlet weak var itemSubCategory: UILabel!
-    @IBOutlet weak var itemColor: UILabel!
     @IBOutlet weak var itemQty: UITextField!
     @IBOutlet weak var boxNumberHeaderLabel: UILabel!
     @IBOutlet weak var boxLocationName: UILabel!
@@ -94,7 +98,7 @@ class ItemDetailsVC: UITableViewController,UIImagePickerControllerDelegate , UIN
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        print("From: \(self.curPage) ->  Item Details - View Did Load ")
         self.locationCellVisibility(on: false)
 
 
@@ -113,34 +117,23 @@ class ItemDetailsVC: UITableViewController,UIImagePickerControllerDelegate , UIN
         case .boxItem:
             
             self.item = Item(itemKey: itemKeyPassed, itemBoxed: true, itemCategory: nil)
-            
             loadDataFromFirebase()
-            
             boxChangeType = .update
             self.locationCellVisibility(on: true)
-
-      
-          
             
         case .existing:
         
+            
             print("From: \(self.curPage) ->  existing ")
             self.item = Item(itemKey: itemKeyPassed, itemBoxed: nil, itemCategory: nil)
             loadDataFromFirebase()
             
-            
         case .new:
             self.item = Item(itemKey: nil, itemBoxed: false, itemCategory: "Un-Categorized")
-
-
             self.title = "New Item"
-            
             configureExpandingMenuButton()
-            
         }
         
-        
-    
         
         // Image Picker Setup
         picker.delegate = self
@@ -182,17 +175,9 @@ class ItemDetailsVC: UITableViewController,UIImagePickerControllerDelegate , UIN
         
     }
  
-    func completionFunction(completion: () -> ()) {
-        
-        completion()
-        
-    }
-    
    
 //    MARK: Fragile
-    
     var fragileStatus: Bool = false
-    
     
     @IBAction func fragileSwitchTapped(_ sender: SevenSwitch) {
         self.itemChanged = true
@@ -202,7 +187,6 @@ class ItemDetailsVC: UITableViewController,UIImagePickerControllerDelegate , UIN
         } else {
             fragileStatus = false
         }
-    
     }
  
     var itemChanged: Bool! {
@@ -213,15 +197,10 @@ class ItemDetailsVC: UITableViewController,UIImagePickerControllerDelegate , UIN
                     self.navigationItem.rightBarButtonItem?.setTitleTextAttributes([
                         NSFontAttributeName : UIFont.boldSystemFont(ofSize: 18.0)],
                                                      for: UIControlState.normal)
-                    
-                    
-                 
-                        
                     self.saveItemButton.title = "Save"
                     self.cancelItemButton.title = "Cancel"
                       self.navigationItem.rightBarButtonItem?.tintColor = UIColor.white
                      self.navigationItem.rightBarButtonItem?.isEnabled = true
-                
                } else {
                     self.cancelItemButton.title = "Done"
  
@@ -231,20 +210,15 @@ class ItemDetailsVC: UITableViewController,UIImagePickerControllerDelegate , UIN
          }
     }
     
-    
-    
-   
- 
+
   
 //    MARK: TextField
-
     @IBAction func itemNameField_action(_ sender: Any) {
         self.itemChanged = true
         self.resignFirstResponder()
     }
     
 //    MARK:  Qty
-    
     @IBOutlet weak var stepper: UIStepper!
     
     @IBAction func qty_textField_action(_ sender: AnyObject) {
@@ -265,14 +239,12 @@ class ItemDetailsVC: UITableViewController,UIImagePickerControllerDelegate , UIN
             } else {
                 self.stepper.value = 1
             }
-
         }
     }
     
     @IBAction func textEditingEnded(_ sender: AnyObject) {
         self.qtyValue = Int(itemQty.text!)
     }
-    
     
     
 //    MARK: Image/Camera
@@ -301,15 +273,11 @@ class ItemDetailsVC: UITableViewController,UIImagePickerControllerDelegate , UIN
             print("Cancel button tapped")
         })
         alertController.addAction(cancelAction)
-        
         present(alertController, animated: true, completion: nil)
     }
     
     
-    
-    
-
-    
+   
     func photoFromLibrary() {
         picker.allowsEditing = false
         picker.sourceType = .photoLibrary
@@ -392,7 +360,7 @@ func changeFontStyle(labelName: UILabel, isPlaceholder:Bool)  {
     
 }
 
-
+    
     func createNumPadToolbar(){
         //init toolbar
         let toolbar:UIToolbar = UIToolbar(frame: CGRect(x: 0, y: 0, width: self.view.frame.size.width, height: 30))
@@ -421,70 +389,63 @@ func changeFontStyle(labelName: UILabel, isPlaceholder:Bool)  {
     func loadDataFromFirebase() {
       let ref =  self.REF_ITEMS.child(self.item.itemKey)
  
-        UIApplication.shared.isNetworkActivityIndicatorVisible = true
+        let spinnerActivity = MBProgressHUD.showAdded(to: self.view, animated: true);
         
-        ref.observe(.value, with: { snapshot in
-            if let itemSnapshotDict = snapshot.value as? Dictionary<String, AnyObject> {
-                let item = Item(itemKey: self.itemKeyPassed, dictionary: itemSnapshotDict)
-                
-                self.item = item
-                    self.kingfisherGetImage()
-                if let itemBoxSnapshotDict = snapshot.childSnapshot(forPath: "/box").value as? Dictionary<String, AnyObject> { // FIRDataSnapshot{
+        spinnerActivity.label.text = "Loading";
+        spinnerActivity.detailsLabel.text = "Please Wait!!";
+        spinnerActivity.isUserInteractionEnabled = false;
+        UIApplication.shared.isNetworkActivityIndicatorVisible = true
 
-                    if let itemBoxNumber = itemBoxSnapshotDict["itemBoxNumber"] {
-                        self.item.itemBoxNum = String(describing: itemBoxNumber)
-                    }
+let fetchFbQueue = DispatchQueue(label: "fetchFB", qos: .userInitiated) // higher importance
+        
+        fetchFbQueue.async {
+print("itemDetails - inside ASYNC")
+            ref.observe(.value, with: { snapshot in
+                if let itemSnapshotDict = snapshot.value as? Dictionary<String, AnyObject> {
+                    let item = Item(itemKey: self.itemKeyPassed, dictionary: itemSnapshotDict)
+                    self.item = item
                     
-                    if let itemBoxKey = itemBoxSnapshotDict["itemBoxKey"] {
-                        self.locationCellVisibility(on: true)
-
-                        self.item.itemBoxKey = itemBoxKey as? String
+                    self.kingfisherGetImage()
+                    if let itemBoxSnapshotDict = snapshot.childSnapshot(forPath: "/box").value as? Dictionary<String, AnyObject> { // FIRDataSnapshot{
                         
-                       self.REF_BOX =   self.REF_BOX.child("\(String(describing: itemBoxKey))")
-                        self.boxChangeType = .update
-                        self.loadItemBoxDetailsFromFireBase()
+                        if let itemBoxNumber = itemBoxSnapshotDict["itemBoxNumber"] {
+                            self.item.itemBoxNum = String(describing: itemBoxNumber)
+                        }
                         
-                    } else {
-                        self.boxChangeType = .none
+                        if let itemBoxKey = itemBoxSnapshotDict["itemBoxKey"] {
+                            self.locationCellVisibility(on: true)
+                            
+                            self.item.itemBoxKey = itemBoxKey as? String
+                            
+                            self.REF_BOX =   self.REF_BOX.child("\(String(describing: itemBoxKey))")
+                            self.boxChangeType = .update
+                            self.loadItemBoxDetailsFromFireBase()
+                            
+                        } else {
+                            self.boxChangeType = .none
+                        }
+                        
+                        if let itemIsBoxed = itemBoxSnapshotDict["itemIsBoxed"] {
+                            self.item.itemIsBoxed = itemIsBoxed as! Bool
+                        }
                     }
-
-                    if let itemIsBoxed = itemBoxSnapshotDict["itemIsBoxed"] {
-                        self.item.itemIsBoxed = itemIsBoxed as! Bool
-                    }
+                    DispatchQueue.main.async(execute: {
+                        self.updateViewWithItem()
+                    })
+                    UIApplication.shared.isNetworkActivityIndicatorVisible = false
                 }
-                
-                self.updateViewWithItem()
-                UIApplication.shared.isNetworkActivityIndicatorVisible = false
-                self.title = self.item.itemName
-                print("item: \(self.item.itemKey)")
-            }
-        })
-    }
+            })
     
- 
-   
-//  not being used anymore - instead i'm using kingfisher    func downloadImageFromFirebase(){
-//
-//        if let itemImageURL = self.item.itemImgUrl {
-//            let ref = FIRStorage.storage().reference(forURL: itemImageURL)
-//            ref.data(withMaxSize: 2 * 1024 * 1024, completion: { (data, error) in
-//                if error != nil {
-//                    print("MK: Unable to download image from Firebase storage")
-//                } else {
-//                    print("MK: Image downloaded from Firebase storage")
-//                    if let imgData = data {
-//                        if let img = UIImage(data: imgData) {
-//                            self.myImageView.image = img
-//                            self.blurredImage.image = img
-//                            self.imageChanged = .existingImage
-//                            UIApplication.shared.isNetworkActivityIndicatorVisible = false
-//
-//                        }
-//                    }
-//                }
-//            })
-//        }
-//    }
+            DispatchQueue.main.async()  {
+                spinnerActivity.hide(animated: true);
+            }
+
+        }
+    
+        
+        
+    }
+  
     
     func loadItemBoxDetailsFromFireBase() {
         print("From: \(curPage) ->  loadItemBoxDetails")
@@ -520,8 +481,7 @@ func changeFontStyle(labelName: UILabel, isPlaceholder:Bool)  {
     
     
     func updateFirebaseData(imgUrl: String?) {
-print("From: \(curPage) ->  updateFirebaseData ")
-        let _ = EZLoadingActivity.show("Saving", disableUI: true)
+                print("From: \(curPage) ->  updateFirebaseData ")
 
         var qtyStr: String
         
@@ -558,7 +518,6 @@ print("From: \(curPage) ->  updateFirebaseData ")
             "itemSubcategory" : self.item.itemSubcategory as AnyObject,
             "itemQty" : qtyStr as AnyObject, //"\(qtyValue)" as AnyObject ,
             "itemFragile" : fragileStatus as AnyObject,
-            "itemColor": self.item.itemColor as AnyObject,
             "/box/itemIsBoxed" : self.item.itemIsBoxed as AnyObject,
             "/box/itemBoxKey" : self.item.itemBoxKey as AnyObject,
             "/box/itemBoxNumber" : self.item.itemBoxNum as AnyObject
@@ -566,11 +525,8 @@ print("From: \(curPage) ->  updateFirebaseData ")
         
         item.saveItemToFirebase(itemKey: itemKey, itemDict: itemDict, completion: { () -> Void in
             
-            print("This is the completiong  ")
-            
-            print("save item to FB and then POP ")
+ 
             popViewController()
-        UIApplication.shared.isNetworkActivityIndicatorVisible = false
         })
     } //end Firebase Data
   
@@ -582,12 +538,9 @@ print("From: \(curPage) ->  updateFirebaseData ")
     func updateViewWithItem() {
         print("In the UPATE VIEW   ")
         configureExpandingMenuButton()
-
-        
         
          if let item = self.item {
-
-            self.title = item.itemName
+             self.title = item.itemName
 
             itemNameField.text = item.itemName
             
@@ -610,18 +563,13 @@ print("From: \(curPage) ->  updateFirebaseData ")
                 subcategoryHeading.isHidden = true
             }
             
-            if let color = item.itemColor {
-                itemColor.text = color 
-
-            } else {
-                itemColor.text = "Not Set"
-                changeFontStyle(labelName: itemColor, isPlaceholder: true)
-            }
             
             if let qty = item.itemQty {
                 itemQty.text = "\(qty)"
+                self.stepper.value = Double(qty)!
+
             } else {
-                itemQty.text = "?"
+                itemQty.text = "0"
             }
             
              fragileStatus = item.itemFragile
@@ -665,14 +613,12 @@ print("From: \(curPage) ->  updateFirebaseData ")
 
     @IBAction func saveItemTapped(_ sender: UIBarButtonItem) {
         UIApplication.shared.isNetworkActivityIndicatorVisible = true
-print("Save Item Tapped ")
+        let _ = EZLoadingActivity.show("Saving", disableUI: true)
         checkForEmptyFields()
         
     }
     
     func checkForEmptyFields() {
-        print("checkForEmptyFields ")
-
 
         guard  itemNameField.text != "" else {
             let errMsg = "Item name is Required "
@@ -731,17 +677,12 @@ print("Save Item Tapped ")
     }
     
     func locationCellVisibility(on: Bool) {
-        
-    self.boxDetailsTableCell.isHidden = !on
-    self.boxDetailsTableCell.isUserInteractionEnabled = on
+        self.boxDetailsTableCell.isHidden = !on
+        self.boxDetailsTableCell.isUserInteractionEnabled = on
     }
  
 //    MARK: ExpandingMenuButton
     fileprivate func configureExpandingMenuButton() {
-        
-        
-//        let boxButton = expandingButtonsIcons.setupExpanding()
-        
         
         var boxSymbol: String!
         var editBoxAlertTitle: String
@@ -785,7 +726,9 @@ print("Save Item Tapped ")
             
             //            Edit Items QR String
             let item1 = ExpandingMenuItem(size: menuButtonSize, title: nil, image: UIImage(named: "qrBlue")!, highlightedImage: UIImage(named: "qrBlue")!, backgroundImage: UIImage(named: "qrBlue"), backgroundHighlightedImage: UIImage(named: "qrBlue")) { () -> Void in
-                
+            
+            self.performSegueWithIdentifier(segueIdentifier: .editQR, sender: self)
+            
             }
             
             //            Add/Edit Photo
@@ -823,59 +766,37 @@ print("Save Item Tapped ")
         let icon = UIImage(named:"boxSearch")
         let alert = SCLAlertView()
         _ = alert.addButton("Scan QR") {
-            
+            self.performSegueWithIdentifier(segueIdentifier: .ShowBoxList, sender: self)
+
         }
         
         _ = alert.addButton("View List") {
-            self.performSegue(withIdentifier: "showBoxList", sender: self)
-            
+            self.performSegueWithIdentifier(segueIdentifier: .ShowBoxList, sender: self)
         }
         
         if self.item.itemIsBoxed == true {
-            
             _ = alert.addButton("Remove Item From Box", backgroundColor: UIColor.red, textColor: UIColor.white) {
 
-//                self.expandingButtonsIcons = ExpandingBoxButtonSetup.notBoxed
-
-                //                set Enum for box
                 self.boxChangeType = .remove
-                print("From: \(self.curPage) ->  Just changed BoxChangeType to \(self.boxChangeType) ")
-                
-                
-//                self.locationCellVisibility(on: false)
-//                self.boxNumberHeaderLabel.text = nil
-//                self.boxLocationName.text = nil
-//                self.boxLocationArea.text = nil
-                
                 self.changeBox()
-                
-//                self.item.itemBoxKey = nil
-//                self.item.itemBoxNum = nil
-//                self.item.itemIsBoxed = false
-
                 self.configureExpandingMenuButton()
-
-                
             }
         }
         
-        
-        
-        
+       
         DispatchQueue.main.async {
             _ = alert.showItemAssignBox(title, subTitle: subtitle, closeButtonTitle: "Cancel", icon: icon!, colorStyle: color )
         }
-        
     }
   
     
-    
-    
+
     func popViewController(){
         UIApplication.shared.isNetworkActivityIndicatorVisible = false
-        let _ = EZLoadingActivity.hide(success: true, animated: true)
+//        let _ = EZLoadingActivity.hide(success: true, animated: true)
 
         _ = navigationController?.popViewController(animated: true)
+        let _ = EZLoadingActivity.hide(true, animated: true)
 
     }
     
@@ -883,9 +804,7 @@ print("Save Item Tapped ")
     
 //    MARK: ErrorAlert
     func newItemErrorAlert(_ title: String, message: String) {
-        
-        // Called upon Save   to let the user know Update to FB didn't work.
-        
+    
         let alert = UIAlertController(title: title, message: message, preferredStyle: UIAlertControllerStyle.alert)
         let action = UIAlertAction(title: "Ok", style: .default, handler: nil)
         alert.addAction(action)
@@ -906,18 +825,13 @@ print("Save Item Tapped ")
     
     @IBAction func unwind_saveCategoryToItemDetails(_ segue:UIStoryboardSegue) {
         if let categoryDetails = segue.source as? CategoryDetailsVC {
-            
-            
+
             if let categorySelections = categoryDetails.category {
-            
                 if let category = categorySelections.category {
                     changeFontStyle(labelName: itemCategory, isPlaceholder: false)
-                    
                 self.item.itemCategory = category
                 self.itemCategory.text = category
-                
                 }
-            
             
                 if let subcat = categorySelections.subcategory {
                     changeFontStyle(labelName: itemSubCategory, isPlaceholder: false)
@@ -929,46 +843,31 @@ print("Save Item Tapped ")
                     self.itemSubCategory.text = ""
                     self.subcategoryHeading.isHidden = true
                 }
-             
             }
             self.itemChanged = true
         }
     }
     
     
-    @IBAction func unwind_saveColorToItemDetails(_ segue:UIStoryboardSegue) {
-        if let colorVC = segue.source as? ColorTableVC {
+//    @IBAction func unwindToItemsFromQrBoxSearch(_ segue:UIStoryboardSegue) {
+//        if let qrScannerViewController = segue.source as? qrScannerVC {
+//            if let scannedString =  qrScannerViewController.objectKeyToPass {
+//                print("Scanned STring: \(scannedString)")
+//                self.itemChanged = true
+//            }
+//        }
+//    }
+//    
+//    
+//    @IBAction func unwindToItemsFromQR_editingQR(_ segue:UIStoryboardSegue) {
+//        if let qrScannerViewController = segue.source as? qrScannerVC {
+//            if let scannedString =  qrScannerViewController.qrData {
+//                print("Scanned STring: \(scannedString)")
+//               self.itemChanged = true
+//            }
+//        }
+//    }
 
-             if let colorObject = colorVC.selectedColor,  let color = colorObject.colorName {
-                self.item.itemColor = color
-                self.itemColor.text = color.capitalized
-                changeFontStyle(labelName: itemColor, isPlaceholder: false)
-
-//                IDEA: should i write this to item Model too ?
-
-                self.itemChanged = true
-
-            }
-        }
-    }
-    
- 
-    
-    
-    @IBAction func unwindToItemsFromQR_editingQR(_ segue:UIStoryboardSegue) {
-        if let qrScannerViewController = segue.source as? qrScannerVC {
-            if let scannedString =  qrScannerViewController.qrData {
-                print("Scanned STring: \(scannedString)")
-                
-                
-                self.itemChanged = true
-
-                
-            }
-        }
-    }
-    
- 
     
     //    MARK: Unwind Box Select
     @IBAction func unwindToItemDetailsFromListBoxSel(_ segue:UIStoryboardSegue) {
@@ -977,22 +876,11 @@ print("Save Item Tapped ")
    
             if let selectedBox = boxFeedViewController.boxToPass {
                 self.boxChangeType.next()
-                
                 self.box = selectedBox
-                
-                
                 self.changeBox()
-                
                 self.configureExpandingMenuButton()
-                
-////                Add it to the Item Object - i did this in the items function, in changebox()
-//                self.item.itemIsBoxed = true
-//                self.item.itemBoxNum = String(selectedBox.boxNumber)
-//                self.item.itemBoxKey = selectedBox.boxKey
-             
              }
         }
- 
     }
  
     func changeBox(){
@@ -1006,17 +894,17 @@ print("Save Item Tapped ")
         
         //        MARK: Create Dictionary for Box Model
         
-        func addTonewBoxDict() -> Dictionary<String, AnyObject> {
-            return ["itemBoxKey": self.box.boxKey as AnyObject , "itemName": self.item.itemName as AnyObject, "itemKey" : self.item.itemKey as AnyObject]
-        }
-        
+//        func addTonewBoxDict() -> Dictionary<String, AnyObject> {
+//            return ["itemBoxKey": self.box.boxKey as AnyObject , "itemName": self.item.itemName as AnyObject, "itemKey" : self.item.itemKey as AnyObject]
+//        }
+//        
         
         
         print("ItemDetails:  switch boxChange type: \(boxChangeType)")
         
         switch boxChangeType {
         case .add:
-            self.box.addItemDetailsToBox(itemDict: addTonewBoxDict() )
+            self.box.addItemDetailsToBox(itemKey: self.item.itemKey )
             self.item.addBoxDetailsToItem(box: self.box)
             locationCellVisibility(on: true)
         case .remove:
@@ -1025,7 +913,7 @@ print("Save Item Tapped ")
             locationCellVisibility(on: false)
         case .update:
             self.box.removeItemDetailsFromBox(itemKey: self.item.itemKey)
-            self.box.addItemDetailsToBox(itemDict: addTonewBoxDict() )
+            self.box.addItemDetailsToBox(itemKey: self.item.itemKey )
             self.item.addBoxDetailsToItem(box: self.box) //adds to itemModel and firebase
              locationCellVisibility(on: true)
         case .none:
@@ -1033,36 +921,32 @@ print("Save Item Tapped ")
         }
         
         self.updateBoxDetailsView()
-        
-        
     }
     
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         
-        print("prepareForSegue ")
-        
-        if let colorVC = segue.destination as? ColorTableVC {
-            colorVC.colorLoadsFrom = .item
-        }
-      
-        
-        if segue.identifier == "showBoxList" {
-            print("identifier ==  showBoxList ")
-            
+        switch segueIdentifierForSegue(segue: segue) {
+        case .ShowBoxList:
             if itemType != .new {
                 if let destination = segue.destination as? BoxFeedVC {
-                    destination.boxLoadType = .itemDetails_matchCategory
+                    destination.segueIdentifier = .ItemDetail
                     destination.itemPassed = self.item
-                    
-                    }
+                }
             } else {
                 newItemErrorAlert("Item Not Saved", message: "Save new item before adding to Box.")
-
             }
             
-            }
+        case .ShowCategory:
+            if let destination = segue.destination as? CategoryDetailsVC {
+            destination.categorySelectionOption = .item
+                
+                }
+        default:
+            print("")
         }
+    }
+
     
     func fadeViewInThenOut(view : UIView, delay: TimeInterval) {
         

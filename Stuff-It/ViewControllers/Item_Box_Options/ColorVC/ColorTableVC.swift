@@ -12,7 +12,6 @@ import DZNEmptyDataSet
 
 enum ColorLoadsFrom:String {
     case box
-    case item
     case settings
 }
 
@@ -84,8 +83,6 @@ class ColorTableVC: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDataSe
                 print("BOX")
                 self.segueId = "unwindToBoxDetailsWithColor"
 
-            case .item:
-                self.segueId = "unwind_saveColorToItemDetails"
             case .settings:
                 tableView.allowsSelection = false
                 

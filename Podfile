@@ -18,4 +18,5 @@ pod "QRCode", '~> 0.5'
 pod 'M13Checkbox'
 pod 'Kingfisher', '~> 3.0'
 pod 'NextResponderTextField'
+pod 'PDFGenerator', '~> 2.0.1'
 end

@@ -30,9 +30,8 @@ class Item  {
     private var _itemIsBoxed: Bool!
     private var _itemQty: String?
     private var _itemFragile: Bool!
-    private var _itemColor: String?
     private var _tags: [String]?
-    private var _qrCode: [String]?
+    private var _itemQR: [String]?
     private var _itemRef: FIRDatabaseReference!
     
     
@@ -53,17 +52,7 @@ class Item  {
     var itemNotes: String? {
         return _itemNotes
     }
-    
-    
-    var itemColor: String? {
-        get {
-            return _itemColor
-        }
-        set {
-            _itemColor = newValue
-        }
-    }
-    
+  
     
     var itemCategory: String? {
          get {
@@ -159,20 +148,18 @@ class Item  {
         return _tags
     }
     
-    var qrCode: [String]? {
-        return _qrCode
+    var itemQR: [String]? {
+        return _itemQR
     }
  
     
-    init(itemName: String, itemCat: String, itemSubcat: String, itemColor: String?) {
+    init(itemName: String, itemCat: String, itemSubcat: String) {
         
         self._itemName = itemName
         self._itemCategory = itemCat
         self._itemSubcategory = itemSubcat
         
-        if let color = itemColor {
-            self._itemColor = color
-        }
+     
     }
 
     init(itemKey: String?, itemBoxed: Bool?, itemCategory: String?) {
@@ -229,38 +216,19 @@ class Item  {
         if let fragile = dictionary["itemFragile"] as? Bool {
             self._itemFragile = fragile
         }
-        if let color = dictionary["itemColor"] as? String {
-            self._itemColor = color
-        }
+   
         if let tags = dictionary["tags"] as? [String] {
             self._tags = tags
         }
-        if let qrCode = dictionary["qrCode"] as? [String] {
-            self._qrCode = qrCode
+        if let itemQR = dictionary["itemQR"] as? [String] {
+            self._itemQR = itemQR
         }
         
         _itemRef = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/items/\(itemKey)")
 
     }
-    
-    
-//    func saveNewItem(item:Item)  {
-//        
-//        let itemDict: Dictionary<String, AnyObject> = [
-//            "itemName" :  item.itemName as AnyObject,
-//            "imageUrl": imgUrl as AnyObject,
-//            "itemCategory" : item.itemCategory as AnyObject,
-//            "itemSubcategory" : item.itemSubcategory as AnyObject,
-//            "itemQty" : item as AnyObject ,
-//            "itemFragile" : item as AnyObject,
-//            "itemColor": item.itemColor as AnyObject,
-//            "itemIsBoxed" : false as AnyObject
-//        ]
-//        
-//    }
 
-    
-    
+     
     
     func removeBoxDetailsFromItem()  {
         print("From: \(self.curPage) ->  REMOVING THE ITEM ")

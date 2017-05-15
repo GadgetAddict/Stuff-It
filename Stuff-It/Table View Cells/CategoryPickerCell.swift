@@ -28,11 +28,11 @@ class CategoryPickerCell: UITableViewCell, UINavigationControllerDelegate {
     func configureCell(category: Category, categoryType:CategoryType) {
         
         switch categoryType {
-        case .category :
+        case .Category :
             print("configureCell cat ")
             self.categoryLabel.text = category.category
             
-        case .subcategory:
+        case .Subcategory:
             print("configureCell subcat")
             self.categoryLabel.text = category.subcategory
             

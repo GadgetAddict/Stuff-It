@@ -23,7 +23,7 @@ class BoxItemCell: UITableViewCell {
         }
     }
     
-
+    
     @IBOutlet weak var itemLabel: UILabel!
     
     @IBOutlet weak var checkMarkButton: UIButton!
@@ -32,23 +32,23 @@ class BoxItemCell: UITableViewCell {
         super.awakeFromNib()
         // Initialization code
     }
-
+    
     override func setSelected(_ selected: Bool, animated: Bool) {
         super.setSelected(selected, animated: animated)
-
+        
         // Configure the view for the selected state
     }
     
     
     var item: Item!
- 
- 
+    
+    
     
     func configureCell(item: Item) {
         
-      self.itemLabel.text = item.itemName
-            
+        self.itemLabel.text = item.itemName
+        
         
     }//ConfigureCell
-
+    
 }

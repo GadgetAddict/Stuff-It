@@ -8,7 +8,6 @@
 
 import UIKit
 import Firebase
-import M13Checkbox
 
 enum SegueType {
     case new
@@ -17,12 +16,12 @@ enum SegueType {
 }
 
 
-class BoxDetails: UITableViewController,UIImagePickerControllerDelegate, UITextFieldDelegate , UINavigationControllerDelegate {
+class BoxDetails: UITableViewController,UIImagePickerControllerDelegate, UITextFieldDelegate , UINavigationControllerDelegate, SegueHandlerType {
 
   
     
 
-    var REF_BOXES = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes")
+    var REF_BOXES = DataService.ds.REF_INVENTORY.child("boxes")
     var box: Box!
     var location: Location!
     
@@ -48,6 +47,8 @@ class BoxDetails: UITableViewController,UIImagePickerControllerDelegate, UITextF
     override func viewDidLoad() {
         super.viewDidLoad()
         
+      print("box details view did load - box passed \(box.boxKey)")
+        
         tableView.tableFooterView = UIView()
         tableView.tableFooterView = UIView(frame: CGRect.zero)
         hideLocationLabels()
@@ -60,11 +61,16 @@ class BoxDetails: UITableViewController,UIImagePickerControllerDelegate, UITextF
             self.box.getBoxNumber()
             
               boxContentsCellActive(boxIsNew: true)
-        default:
+        case .existing:
             boxContentsCellActive(boxIsNew: false)
-            
-            loadBoxData()
-            
+            print("Box Details is Existing - ")
+            print("Box Details Got Box: \(self.box.boxNumber)- ")
+
+            updateBoxView()
+        case .qr:
+            boxContentsCellActive(boxIsNew: false)
+            loadDataFromFirebase()
+        
         }
         
         
@@ -174,7 +180,42 @@ class BoxDetails: UITableViewController,UIImagePickerControllerDelegate, UITextF
         
     }
     
-    func loadBoxData(){
+    func loadDataFromFirebase() {
+    let ref =  self.REF_BOXES.child(self.box.boxKey)
+    
+        let spinnerActivity = MBProgressHUD.showAdded(to: self.view, animated: true);
+        
+        spinnerActivity.label.text = "Loading";
+        spinnerActivity.detailsLabel.text = "Please Wait!!";
+        spinnerActivity.isUserInteractionEnabled = false;
+        UIApplication.shared.isNetworkActivityIndicatorVisible = true
+        
+        let fetchFbQueue = DispatchQueue(label: "fetchFB", qos: .userInitiated) // higher importance
+        
+        fetchFbQueue.async {
+            print("boxDetails - inside ASYNC")
+
+            
+    ref.observe(.value, with: { snapshot in
+    if let boxSnapshotDict = snapshot.value as? Dictionary<String, AnyObject> {
+    let box = Box(boxKey: self.box.boxKey, dictionary: boxSnapshotDict)
+        
+        self.box = box
+     
+        DispatchQueue.main.async()  {
+            self.updateBoxView()
+
+            spinnerActivity.hide(animated: true);
+        }
+        
+        }
+            })
+        }
+    }
+    
+     
+    
+    func updateBoxView(){
 
         if let boxTitle = box.boxName {
             print("Box Title \(String(describing: box.boxName )) ")
@@ -227,7 +268,7 @@ class BoxDetails: UITableViewController,UIImagePickerControllerDelegate, UITextF
             
             
             print("save box to FB and then POP ")
-            let _ =  EZLoadingActivity.hide(success: true, animated: true)
+            let _ =  EZLoadingActivity.hide(true, animated: true)
             
             popViewController()
         })
@@ -281,18 +322,17 @@ class BoxDetails: UITableViewController,UIImagePickerControllerDelegate, UITextF
      withCompletionHandler(self.box.boxKey, boxDict)
  
     }
-    
-//    ALERT: REFACTOR TO MAKE JUST ONE SAVE TO FB - Switch Stmt for .new and just create the KEY using child by auto id, or the existing key - then call method to save
-    
+ 
  
    
     
     
     
     func popViewController()  {
-        
+ 
         switch boxSegueType {
         case .qr:
+            
             _ = navigationController?.popToRootViewController(animated: true)
         default:
             _ = navigationController?.popViewController(animated: true)
@@ -364,6 +404,24 @@ class BoxDetails: UITableViewController,UIImagePickerControllerDelegate, UITextF
     }
     
     
+//    will never unwind from here, right  ?
+//    @IBAction func unwindToBoxFromQRsearch(_ segue:UIStoryboardSegue) {
+//        if let qrScannerViewController = segue.source as? qrScannerVC {
+//            if let scannedString =  qrScannerViewController.objectKeyToPass {
+//                print("Scanned STring: \(scannedString)")
+//            }
+//        }
+//    }
+    
+    
+    @IBAction func unwindToBoxFromQR_editingQR(_ segue:UIStoryboardSegue) {
+        if let qrScannerViewController = segue.source as? qrScannerVC {
+            if let scannedString =  qrScannerViewController.qrData {
+                print("Scanned STring: \(scannedString)")
+             }
+        }
+    }
+
     
     
     @IBAction func unwindToBoxDetailsWithLocation(_ segue:UIStoryboardSegue) {
@@ -417,29 +475,61 @@ class BoxDetails: UITableViewController,UIImagePickerControllerDelegate, UITextF
 //         }
 //    }
     
+  
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         
-    
-        if segue.identifier == "BoxCategorySegue" {
-            print("BoxCategorySegue")
-           if let boxCategoryVC = segue.destination as? CategoryPicker {
-                 boxCategoryVC.categorySelection = .box
-               boxCategoryVC.categoryType = .category
-        }
-        } else if let boxItemsVC = segue.destination as?  BoxItemsVC{
-                    print("destination as? boxItemsVC")
-                    boxItemsVC.box = self.box
-                 
-        } else {
-            if self.boxSegueType == .existing {
-              if let boxLocations = segue.destination as?  LocationDetailsVC {
-                boxLocations.passedALocation = true
-                boxLocations.location = self.location
-                }
-            }
-        }
         
+            switch segueIdentifierForSegue(segue: segue) {
+            case .Category:
+                if let boxCategoryVC = segue.destination as? CategoryPicker {
+                    boxCategoryVC.categorySelection = .box
+                    boxCategoryVC.categoryType = .Category
+                
+                }
+            case .Location:
+               print("")
+            case .Items:
+                if let boxItemsVC = segue.destination as? BoxItemsVC {
+                    boxItemsVC.box = self.box
+                }
+            default:
+                print("")
+        }
     }
+    
+        enum SegueIdentifier: String {
+            case Category
+            case Color
+            case Items
+            case Location
+            case Status
+         
+        }
+    
+//    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+//        
+//    
+//        if segue.identifier == "BoxCategorySegue" {
+//            print("BoxCategorySegue")
+//           if let boxCategoryVC = segue.destination as? CategoryPicker {
+//                 boxCategoryVC.categorySelection = .box
+//               boxCategoryVC.categoryType = .category
+//        }
+//        } else if let boxItemsVC = segue.destination as?  BoxItemsVC{
+//                    print("destination as? boxItemsVC")
+//                    boxItemsVC.box = self.box
+//                 
+//        } else {
+//            if self.boxSegueType == .existing {
+//              if let boxLocations = segue.destination as?  LocationDetailsVC {
+//                boxLocations.passedALocation = true
+//                boxLocations.location = self.location
+//                }
+//            }
+//        }
+//        
+//    }
 
         var curPage = "BoxDetails"
 }
+ 
