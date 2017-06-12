@@ -41,11 +41,11 @@ class ItemCell: UITableViewCell, UINavigationControllerDelegate {
         
         imageThumb.kf.indicatorType = .activity
         
-        let processor = RoundCornerImageProcessor(cornerRadius: imageThumb.frame.height / 2.0)
+//        let processor = RoundCornerImageProcessor(cornerRadius: imageThumb.frame.height / 2.0)
  //        let processor = OverlayImageProcessor(overlay: .red, fraction: 0.7)
         imageThumb.kf.setImage(with: self.url ,
-                                    placeholder: nil,//UIImage(named: "qrBoxLogoV2_stroke"),
-                                    options: [ .transition(ImageTransition.fade(3))] )
+                                    placeholder: nil,//UIImage(named: "Icon-App-1024x1024"),
+                                    options: [ .transition(ImageTransition.fade(2))] )
     
     
             
@@ -100,7 +100,7 @@ class ItemCell: UITableViewCell, UINavigationControllerDelegate {
 //            self.boxNumberLbl.isHidden = true
 //        }
         
-        self.boxNumberLbl.isHidden = !self.item.itemIsBoxed
+        self.boxNumberLbl.isHidden = !self.item.itemIsBoxed!
         
         if let boxNumber = item.itemBoxNum {
               self.boxNumberLbl.text = "Box  \(boxNumber)"

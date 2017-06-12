@@ -19,6 +19,9 @@ class SettingsVC: UITableViewController, SegueHandlerType {
         case Status
         case Category
         case QR
+        case Logout
+        case playTable
+        case playItemsFeed2
     }
     
         override func viewDidLoad() {
@@ -56,7 +59,7 @@ class SettingsVC: UITableViewController, SegueHandlerType {
     @IBAction func signOut_Tapped(_ sender: UIBarButtonItem) {
             COLLECTION_ID = nil
             print("LOGOUT Gesture Tapped")
-        let defaults = UserDefaults.standard
+//        let defaults = UserDefaults.standard
         
         
 //        if (defaults.object(forKey: "CollectionIdRef") != nil) {
@@ -83,24 +86,18 @@ class SettingsVC: UITableViewController, SegueHandlerType {
             let firebaseAuth = FIRAuth.auth()
             do {
                 try firebaseAuth?.signOut()
-                defaults.set(nil, forKey: "CollectionIdRef")
-                defaults.set(nil, forKey: "CollectionName")
-                COLLECTION_ID = nil 
-                self.performSegue(withIdentifier: "unwindToLogout", sender: self)
-
-//                self.dismiss(animated: true, completion: nil)
+                
+                COLLECTION_ID = nil
+                
+//                defaults.set(nil, forKey: "CollectionIdRef")
+//                defaults.set(nil, forKey: "CollectionName")
+                COLLECTION_ID = nil
+                performSegueWithIdentifier(segueIdentifier: .Logout, sender: self)
                 
             } catch let signOutError as NSError {
                 print ("Error signing out: \(signOutError.localizedDescription)")
             }
-            
-        
-//    if (defaults.object(forKey: "CollectionIdRef") != nil) {
-//    if let collectionId = defaults.string(forKey: "CollectionIdRef") {
-//    print("Collection ID is \(collectionId)")
-//    }
-//    }
-
+ 
     
     }
 

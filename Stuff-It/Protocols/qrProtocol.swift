@@ -5,21 +5,56 @@
 //  Created by Michael King on 5/12/17.
 //  Copyright © 2017 Microideas. All rights reserved.
 //
-
+/*
 import Foundation
 import Firebase
 
 
+protocol qrScannerDelegate {
+    func assignBox()
+}
+
+
+extension qrScannerDelegate {
+    func assignItemToBox(){
+        print("YAY QR DELEGATES")
+    }
+    
+    func assignBox(selectedBox:Box, itemToBox: Item)  {
+        
+        if let oldBoxKey = itemToBox.itemBoxKey {
+            let oldBox = Box(boxKey: oldBoxKey, boxNumber: nil)
+            
+            //              Remove item from it's old box'
+            oldBox.removeItemDetailsFromBox(itemKey: itemToBox.itemKey)
+        }
+        
+        //          Add  Item Details to Box in Firebase
+        selectedBox.addItemDetailsToBox(itemKey: itemToBox.itemKey)
+        
+        //          Add Box to Item in Firebase
+        itemToBox.addBoxDetailsToItem(box: selectedBox)
+    }
+
+}
+*/
+
+ 
+
+
+/*
 protocol qrDelegate {
     typealias objectTypeReturned = qrScanTypes
     func getDataFromFirebase(qrScan: String, callback: @escaping (_ key: String?, _ objectTypeReturned: objectTypeReturned) -> Void)
 }
 
-    extension qrDelegate {
+
+
+
         typealias qrType = qrScanTypes
-        
+    
         func getDataFromFirebase(qrScan: String, callback: @escaping (_ key: String?, _ objectTypeReturned: qrType) -> Void) {
-            var objectTypeReturned: qrType = .Error
+//            var objectTypeReturned: qrType = .Error
             
             var objectKey: String!
             
@@ -61,3 +96,4 @@ protocol qrDelegate {
 
 
 }
+*/

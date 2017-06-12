@@ -11,12 +11,6 @@ import UIKit
 
 
 
-enum ErrorMessages {
-    case noResults   //nothing found -create new item or box ?
-    case objIsItemMstBeBox //cannot store item in an item
-    case qrTaken   //cannot assign new item to existing item- un-assign this item?
-    case iFailed  //catch all
-}
 
 
 fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {

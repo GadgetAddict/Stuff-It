@@ -35,7 +35,26 @@ class ItemImageView: UIImageView {
 
     }
 }
+/*
+class ItemBlurredImageView: UIImageView {
+    
+    override func awakeFromNib() {
+        //        Corners
+        layer.cornerRadius = frame.height / 12.0
+        clipsToBounds = true
+        
+    }
+}
 
+class ItemBlurredVisualEffects: UIVisualEffectView {
+    override func awakeFromNib() {
+        //        Corners
+        layer.cornerRadius = frame.height / 12.0
+        clipsToBounds = true
+        
+    }
+}
+*/
 //   layer.shadowPath = UIBezierPath(roundedRect: layer.bounds, cornerRadius: 10).cgPath
 //        layer.shouldRasterize = true
 //        layer.rasterizationScale = UIScreen.main.scale

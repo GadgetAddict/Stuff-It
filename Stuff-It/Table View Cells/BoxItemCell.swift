@@ -7,24 +7,17 @@
 //
 
 import UIKit
+import Kingfisher
+import SwipeCellKit
 
-protocol BoxItemsButtonCellDelegate {
-    func cellTapped(cell: BoxItemCell)
-}
+
 
 class BoxItemCell: UITableViewCell {
     
-    var buttonDelegate: BoxItemsButtonCellDelegate?
-    @IBOutlet weak var rowLabel: UILabel!
-    
-    @IBAction func buttonTap(sender: AnyObject) {
-        if let delegate = buttonDelegate {
-            delegate.cellTapped(cell: self)
-        }
-    }
+      @IBOutlet weak var rowLabel: UILabel!
+ 
     
     
-    @IBOutlet weak var itemLabel: UILabel!
     
     @IBOutlet weak var checkMarkButton: UIButton!
     
@@ -38,17 +31,88 @@ class BoxItemCell: UITableViewCell {
         
         // Configure the view for the selected state
     }
-    
-    
-    var item: Item!
-    
-    
-    
-    func configureCell(item: Item) {
-        
-        self.itemLabel.text = item.itemName
+ 
         
         
-    }//ConfigureCell
+        
+        var item: Item!
+        var url: URL?
+        
+        @IBOutlet weak var nameLbl: UILabel!
+        @IBOutlet weak var categoryLbl: UILabel!
+        @IBOutlet weak var subCategoryLbl: UILabel!
+        @IBOutlet weak var imageThumb: UIImageView!
+        @IBOutlet weak var boxNumberLbl: UILabel!
+        @IBOutlet weak var imgFragile: UIImageView!
+        @IBOutlet weak var qty: UILabel!
+        
     
+        
+        
+        func configureCell(item: Item) {
+            
+            
+            if let itemUrl = item.itemImgUrl {
+                url = URL(string:itemUrl)
+            }
+            
+            imageThumb.kf.indicatorType = .activity
+            imageThumb.kf.setImage(with: self.url ,
+                                   placeholder: nil,
+                                   options: [ .transition(ImageTransition.fade(3))] )
+            
+            
+            self.item = item
+            
+            
+            
+            if let qty = item.itemQty {
+                self.qty.text = "\(qty)"
+            } else {
+                self.qty.text = "   "
+            }
+            
+            self.nameLbl.text = item.itemName.capitalized
+            
+            if let category = item.itemCategory {
+                self.categoryLbl.text = category.capitalized
+            } else {
+                self.categoryLbl.text = nil
+            }
+            
+            if let subcategory = item.itemSubcategory {
+                self.subCategoryLbl.text = ": \(subcategory.capitalized)"
+            } else {
+                self.subCategoryLbl.text = nil
+            }
+            
+            
+            //check if fragile, show image or don't
+            if item.itemFragile == false {
+                self.imgFragile.isHidden = true
+            }else{
+                self.imgFragile.isHidden = false
+                
+            }
+        
+            
+            self.boxNumberLbl.isHidden = !self.item.itemIsBoxed!
+            
+            if let boxNumber = item.itemBoxNum {
+                self.boxNumberLbl.text = "Box  \(boxNumber)"
+                
+            }
+   
+            
+        }//ConfigureCell
+        
 }
+
+
+
+
+
+
+
+
+

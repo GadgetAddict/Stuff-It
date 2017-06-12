@@ -1,10 +1,12 @@
 PODS:
+  - BarcodeScanner (2.0.0)
   - Bolts (1.8.4):
     - Bolts/AppLinks (= 1.8.4)
     - Bolts/Tasks (= 1.8.4)
   - Bolts/AppLinks (1.8.4):
     - Bolts/Tasks
   - Bolts/Tasks (1.8.4)
+  - DLRadioButton (1.4.9)
   - DZNEmptyDataSet (1.8.1)
   - FBSDKCoreKit (4.16.0):
     - Bolts (~> 1.7)
@@ -52,8 +54,11 @@ PODS:
   - NextResponderTextField (2.0.1)
   - PDFGenerator (2.0.1)
   - QRCode (0.5)
+  - SwipeCellKit (1.8.0)
 
 DEPENDENCIES:
+  - BarcodeScanner
+  - DLRadioButton (~> 1.4)
   - DZNEmptyDataSet
   - FBSDKLoginKit
   - Firebase/Auth
@@ -65,9 +70,12 @@ DEPENDENCIES:
   - NextResponderTextField
   - PDFGenerator (~> 2.0.1)
   - QRCode (~> 0.5)
+  - SwipeCellKit
 
 SPEC CHECKSUMS:
+  BarcodeScanner: 266ab4b479d407b74bc4b473fa5020b4523ad9e3
   Bolts: 8a7995239dbe724f9cba2248b766d48b7ebdd322
+  DLRadioButton: 7bb8a6e3768b572469ace553391ab4d2af6f9c19
   DZNEmptyDataSet: 9525833b9e68ac21c30253e1d3d7076cc828eaa7
   FBSDKCoreKit: 7a6baaed4a2b2a244ba253346713bdbc74df135b
   FBSDKLoginKit: 469a56cebe2e1ed62b1621d0b155970fd6aac2d8
@@ -87,7 +95,8 @@ SPEC CHECKSUMS:
   NextResponderTextField: 93221cea88a1f2838558db88adc46d2a0763f0dd
   PDFGenerator: 69cf0787767d501a10b6b85492b1f27fd23b00e8
   QRCode: a249ed747aeb0f4bf5f9c58b5b001b6b3bc80073
+  SwipeCellKit: 01a58bf7e63d5df09aedd161828833944c4c333c
 
-PODFILE CHECKSUM: 0f6cc55c809a4c8d1a876fc2195d8994c8be6252
+PODFILE CHECKSUM: 80f5a926ee7f6345ad6bf05c6ed581de36672ef2
 
 COCOAPODS: 1.1.1

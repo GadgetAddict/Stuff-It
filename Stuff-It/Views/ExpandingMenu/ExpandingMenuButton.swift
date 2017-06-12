@@ -279,6 +279,7 @@ open class ExpandingMenuButton: UIView, UIGestureRecognizerDelegate {
             return CGPoint(
                 x: self.centerButton.center.x + CGFloat(cosf((Float(angle) + 1.0) * Float.pi)) * itemExpandRadius,
                 y: self.centerButton.center.y + CGFloat(sinf((Float(angle) + 1.0) * Float.pi)) * itemExpandRadius
+                
             )
         case .bottom:
             return CGPoint(
@@ -286,7 +287,7 @@ open class ExpandingMenuButton: UIView, UIGestureRecognizerDelegate {
                 y: self.centerButton.center.y + CGFloat(sinf(Float(angle) * Float.pi)) * itemExpandRadius
             )
         }
-    }
+ }
     
     // MARK: - Fold Menu Items
     fileprivate func foldMenuItems() {
@@ -499,7 +500,10 @@ open class ExpandingMenuButton: UIView, UIGestureRecognizerDelegate {
             // 2. Excute expand animation
             //
             let distance: CGFloat = self.makeDistanceFromCenterButton(item.bounds.size, lastDisance: lastDistance, lastItemSize: lastItemSize)
+//            print(" lastDistance was    \(lastDistance )")
             lastDistance = distance
+//            print(" distance is now       \(distance )")
+
             lastItemSize = item.bounds.size
             var endPoint: CGPoint = self.makeEndPoint(distance, angle: currentAngle / 180.0)
             var farPoint: CGPoint = self.makeEndPoint(distance + 10.0, angle: currentAngle / 180.0)
@@ -508,30 +512,39 @@ open class ExpandingMenuButton: UIView, UIGestureRecognizerDelegate {
             
             switch index {
             case 0:
-                //print(" 480  case 0 : \(index)")
-                  endPoint.x = endPoint.x + 75
-                 farPoint.x = farPoint.x + 75
+//                print(" 480  case 0 : \(index)")
+//                print(" startingPoint was    \(endPoint.y )")
+
+                endPoint.x = endPoint.x + 73  // changed from 75
+                 farPoint.x = farPoint.x + 20
                 nearPoint.x = nearPoint.x + 75
-            endPoint.y = endPoint.y + 39
+            endPoint.y = endPoint.y + 42
  
   
-//                //print(" startingPoint IS NOW \(startingPoint)")
+//                print(" startingPoint IS NOW \(endPoint.y )")
 
             case 1:
-                //print(" 490 case 1 : \(index)")
+//                 print(" 490 case 1 : \(index)")
+//                 print(" startingPoint was    \(endPoint.y )")
+
                 endPoint.x = endPoint.x + 55
                 farPoint.x = farPoint.x + 55
                 nearPoint.x = nearPoint.x + 55
-                endPoint.y = endPoint.y + 20
+                endPoint.y = endPoint.y + 30
 
-//                //print(" startingPoint IS NOW \(startingPoint)")
+//                 print(" startingPoint IS NOW \(endPoint.y )")
 
             case 2:
-                //print(" 492 case 2 : \(index)")
+//                 print(" 492 case 2 : \(index)")
+//                 print(" startingPoint was    \(endPoint.y )")
+
                 endPoint.x = endPoint.x + 80
                 farPoint.x = farPoint.x + 80
                 nearPoint.x = nearPoint.x + 80
- 
+                 endPoint.y = endPoint.y + 15
+
+//                 print(" startingPoint IS NOW \(endPoint.y )")
+
             
 //            case 3:
 //                //print(" 492 case 2 : \(index)")

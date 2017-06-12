@@ -9,11 +9,7 @@
 import Foundation
 import Firebase
 
-class BoxedItems: Item {
 
-    
-    
-}
 
 
 class Box  {
@@ -54,6 +50,8 @@ class Box  {
         return _boxCategory
     }
 
+ 
+    
     var boxName:String? {
         return _boxName
     }
@@ -139,7 +137,8 @@ class Box  {
         if let fragile = dictionary["fragile"] as? Bool {
             self._boxFragile = fragile
         }
-        
+    
+
         if let stackable = dictionary["stackable"] as? Bool {
             self._boxStackable = stackable
         }
@@ -180,21 +179,22 @@ class Box  {
             self._boxColor = color
         }
         
-        _boxRef = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes/\(boxKey)")
+        _boxRef = DataService.ds.REF_INVENTORY.child("boxes/\(boxKey)")
         
      }
  
     func removeItemDetailsFromBox(itemKey: String)  {
-        print("removeItemDetailsFromBox")
+        print("Box Model: removeItemDetailsFromBox")
          _boxRef.child("items/\(itemKey)").removeValue()
  
     }
  
     
+
+    
     func addItemDetailsToBox(itemKey: String) {
-  
-        
-        
+        print("Box Model: addItemDetailsToBox")
+
         _boxRef = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes/\(boxKey)/items")
 
         _boxRef.setValue([
@@ -216,8 +216,10 @@ class Box  {
         completion()
     }
     
+//    generate next box number
   func getBoxNumber() {
-    let REF_BOXES = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/boxes")
+    print("Box Model: getBoxNumber")
+    let REF_BOXES = DataService.ds.REF_INVENTORY.child("boxes")
     self._boxNumber = 1
         REF_BOXES.queryOrdered(byChild: "boxNum").queryLimited(toLast: 1).observeSingleEvent(of: .childAdded, with: { (snapshot) in
             if let boxSnapshot = snapshot.value as? Dictionary<String, AnyObject> {
@@ -228,6 +230,44 @@ class Box  {
             }
         })
     }
+ 
+//    MARK: When In Box, and adding new items, if none match the category, show the overlyay.
+//    Count Total Items and Then Count Items that are not stored in THIS Specific Box
+//    if there are more items not boxed, even though they dont match the same box category, show the button to view those items
+    func countItemsNotInBox( completion: @escaping (Bool) -> ()) {
+        print("Box Model: countItemsNotInBox")
+
+            let REF = DataService.ds.REF_INVENTORY.child("items")
+       
+        var itemCount: Int!
+        REF.observeSingleEvent(of: .value, with:{ (snapshot: FIRDataSnapshot!) in
+              itemCount = Int(snapshot.childrenCount)
+            print("FIRST itemCount is \(itemCount)")
+       
+         
+//            let dataRef = REF.child("box")
+            let queryRef1 = REF.queryOrdered(byChild: "box/itemBoxKey")
+            let queryRef2 = queryRef1.queryEqual(toValue: self._boxKey)
+            queryRef2.observeSingleEvent(of: .value, with: { snapshot in
+//                print(snapshot.childrenCount)
+                let itemsInThisBox = Int(snapshot.childrenCount)
+                 completion(itemsInThisBox < itemCount)
+            })
+  
+           
+        
+        })
+ }
+    
+//    func getBox(){
+//        _boxRef.observe(.value, with: { snapshot in
+//            if let boxSnapshotDict = snapshot.value as? Dictionary<String, AnyObject> {
+//                let box = Box(boxKey: self.boxKey, dictionary: boxSnapshotDict)
+//                
+//                
+//                }
+//            })
+        
 
 } // class
 

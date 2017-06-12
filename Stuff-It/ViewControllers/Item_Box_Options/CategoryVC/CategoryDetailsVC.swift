@@ -22,8 +22,8 @@ enum CategorySelection:String {
 }
 
 
-class CategoryDetailsVC: UITableViewController, SegueHandlerType {
-   
+class CategoryDetailsVC: UITableViewController,SegueHandlerType {
+    
     
     enum SegueIdentifier: String {
         case Item
@@ -32,7 +32,38 @@ class CategoryDetailsVC: UITableViewController, SegueHandlerType {
         case Category
         case Subcategory
     }
+
     
+    
+    func segue(segue: SegueIdentifier) {
+        
+        performSegueWithIdentifier(segueIdentifier: segue, sender: self)
+    }
+    
+    @IBAction func cancelButtonPressed(_ sender: UIBarButtonItem) {
+        switch categorySelectionOption{
+        case .item:
+            segue(segue: .CancelItem)
+            
+        case .settings:
+            segue(segue: .Settings)
+            
+        default:
+            print("")
+            
+        }
+    }
+    
+    
+    
+    @IBAction func doneButtonPressed(_ sender: UIBarButtonItem) {
+        
+                      segue(segue: .Item)
+        
+         
+    }
+    
+    @IBOutlet weak var subCatTableCell: UITableViewCell!
     
     var categoryName:String! {
         didSet {
@@ -44,96 +75,42 @@ class CategoryDetailsVC: UITableViewController, SegueHandlerType {
             subCatTableCell.isUserInteractionEnabled = true
         }
     }
-
     var subCategoryName:String = "Not Set" {
         didSet {
             subCcategoryNameLabel.text? = subCategoryName
             self.category = Category(category: categoryName, subcategory: subCategoryName)
+            
         }
     }
-
     
-    var category:Category?
     var categorySelectionOption: CategorySelection = .item
+    var category:Category?
+    
     @IBOutlet weak var categoryNameLabel: UILabel!
     @IBOutlet weak var subCcategoryNameLabel: UILabel!
-    @IBOutlet weak var subCatTableCell: UITableViewCell!
-
-
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
         subCatTableCell.isUserInteractionEnabled = false
         subCcategoryNameLabel.isHidden = true
-
-        switch categorySelectionOption {
-        case .box:
-            print("")
-        case .item:
-            print("")
-        case .settings:
-            categoryNameLabel.text = "View"
+        
+        if categorySelectionOption == .settings {
+            categoryNameLabel.text = "Select"
             subCcategoryNameLabel.isHidden = true
+            
             self.navigationItem.leftBarButtonItem?.tintColor = UIColor.clear
-            self.navigationItem.leftBarButtonItem?.isEnabled = false
+            self.navigationItem.leftBarButtonItem?.isEnabled = true
+            self.navigationItem.rightBarButtonItem?.isEnabled = false
+            
             subCatTableCell.isUserInteractionEnabled = false
         }
     }
     
     
-    func segue(segue: SegueIdentifier) {
-   
-        performSegueWithIdentifier(segueIdentifier: segue, sender: self)
-    }
-    
-    func segue() {
-    switch categorySelectionOption {
-    case .item:
-        performSegueWithIdentifier(segueIdentifier: .Item, sender: self)
-       
-//    case .settings:
-//        performSegueWithIdentifier(segueIdentifier: .Settings, sender: self)
-    
-    default:
-        print("")
-        }
-    
-    }
- 
-    
-    @IBAction func cancelButtonPressed(_ sender: UIBarButtonItem) {
-        switch categorySelectionOption{
-        case .item:
-            segue(segue: .CancelItem)
-
-       
-        default:
-            print("")
-  
-            }
-        }
     
 
-    
-    @IBAction func doneButtonPressed(_ sender: UIBarButtonItem) {
-     
-        switch categorySelectionOption{
-        case .item:
-            if categoryNameLabel.text != "Detail" {
-                segue(segue: .Item)
-        } else {
-                errorAlert("Whoops", message: "A Category is Required")
-            }
-            
-        case .settings:
-            segue(segue: .Settings)
-            
-        default:
-            print("")
-   
-        }
-    }
     
     func errorAlert(_ title: String, message: String) {
         // Called upon login error to let the user know login didn't work.
@@ -144,40 +121,50 @@ class CategoryDetailsVC: UITableViewController, SegueHandlerType {
         present(alert, animated: true, completion: nil)
     }
     
- 
+
+    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if let categoryPickerViewController = segue.destination as? CategoryPicker {
             
             switch segueIdentifierForSegue(segue: segue) {
                 
             case .Category:
-                categoryPickerViewController.categoryType = CategoryType.Category
+                categoryPickerViewController.categoryType = CategoryType.category
                 
             case .Subcategory:
                 
                 switch categorySelectionOption{
                 case .settings:
                     categoryPickerViewController.categorySelection = .settings
-
+                    categoryPickerViewController.categoryType = CategoryType.subcategory
+                    if let cat = category?.category{
+                        categoryPickerViewController.passedCategory = cat
+                        
+                    }
+                    
+                    
                 default:
                     
-                categoryPickerViewController.categoryType = CategoryType.Subcategory
-                if let cat = category?.category{
+                    categoryPickerViewController.categoryType = CategoryType.subcategory
+                    if let cat = category?.category{
                         categoryPickerViewController.passedCategory = cat
                         
                     }
                 }
             default:
                 print("")
-            
+                
             }
         }
     }
     
     
+    
 //    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-// 
+//        print("Category Details VC prepare for segue called")
+//        
 //        if let categoryPickerViewController = segue.destination as? CategoryPicker {
+//            print("destination as? CategoryPickerVC")
 //            
 //            if segue.identifier == "showCatList" {
 //                categoryPickerViewController.categoryType = CategoryType.category
@@ -186,10 +173,11 @@ class CategoryDetailsVC: UITableViewController, SegueHandlerType {
 //            }
 //            if segue.identifier == "showSubcatList" {
 //                categoryPickerViewController.categoryType = CategoryType.subcategory
+//                print("I picked Category Type \(categoryPickerViewController.categoryType.rawValue) aka subcategory")
 //                
 //                if let cat = category?.category{
 //                    categoryPickerViewController.passedCategory = cat
-//
+//                    
 //                }
 //                if categorySelectionOption == .settings {
 //                    categoryPickerViewController.categorySelection = .settings
@@ -198,17 +186,17 @@ class CategoryDetailsVC: UITableViewController, SegueHandlerType {
 //            
 //            if segue.identifier == "unwind_saveCategoryToItemDetails" {
 //                category = Category(category: categoryName, subcategory: subCategoryName)
-//
+//                
 //            }
 //            
 //        }
-  //w  }
- 
+//    }
+    
     //    //Unwind segue
     
     @IBAction func CategoryUnwindCancel(_ segue:UIStoryboardSegue) {
     }
-            
+    
     @IBAction func CategoryUnwindWithSelection(_ segue:UIStoryboardSegue) {
         if let categoryPickerVC = segue.source as? CategoryPicker {
             let selectedCategory = categoryPickerVC.selectedCategory
@@ -218,17 +206,17 @@ class CategoryDetailsVC: UITableViewController, SegueHandlerType {
             
             switch categoryType {
                 
-            case .Category:
+            case .category:
                 print("category")
                 self.categoryName = (selectedCategory?.category)!
                 
                 
-            case .Subcategory :
+            case .subcategory :
                 print("subcategory ")
                 self.subCategoryName = (selectedCategory?.subcategory)!
                 
                 
-             
+                
                 
             }
         }
@@ -239,5 +227,5 @@ class CategoryDetailsVC: UITableViewController, SegueHandlerType {
     
     
     
-    var curPage = "CategoryDetails"
+    
 }

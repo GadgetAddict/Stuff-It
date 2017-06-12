@@ -39,6 +39,12 @@ class WalkThroughContentViewController: UIViewController {
         
     }
     
+    @IBAction func cancelWalkThroughButton(_ sender: Any) {
+    print("CLOSE WALKTHRU")
+        UserDefaults.standard.set(true, forKey: "hasViewedWalkThrough")
+        dismiss(animated: true, completion: nil)
+    }
+    
     @IBAction func nextButtonTapped(sender: UIButton) {
         
         switch index {

@@ -414,7 +414,7 @@ class BoxDetails_EditVC: UITableViewController, UITextFieldDelegate {
                 print("BoxCategorySegue")
                 if let boxCategoryVC = segue.destination as? CategoryPicker {
                     boxCategoryVC.categorySelection = .box
-                    boxCategoryVC.categoryType = .Category
+                    boxCategoryVC.categoryType = .category
                 }
 //            } else if let boxItemsVC = segue.destination as?  BoxItemsVC{
 //                print("destination as? boxItemsVC")

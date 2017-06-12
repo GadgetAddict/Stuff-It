@@ -18,9 +18,8 @@ class BoxCell: UITableViewCell, UINavigationControllerDelegate {
     var box: Box!
     var itemRef: String!
 
-//    @IBOutlet weak var fragileImg: UIImageView!
-//    @IBOutlet weak var boxNumberLbl: UILabel!
-    @IBOutlet weak var boxCatLbl: UILabel!
+    @IBOutlet weak var mixedContentIcon: UIImageView!
+     @IBOutlet weak var boxCatLbl: UILabel!
     @IBOutlet weak var boxStatusLbl: UILabel!
     @IBOutlet weak var boxNameLbl: UILabel!
     @IBOutlet weak var boxNumberLbl: UILabel!
@@ -56,7 +55,9 @@ class BoxCell: UITableViewCell, UINavigationControllerDelegate {
         
 //         did i even use this ?
 //        itemRef = box.boxKey
-//        print("Box Numbr: \(box.boxNumber)")
+        
+        print("Box Numbr: \(box.boxNumber)")
+        
      
 
         if let boxName = box.boxName {

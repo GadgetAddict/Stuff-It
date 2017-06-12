@@ -11,12 +11,12 @@ import Firebase
 import DZNEmptyDataSet
 
 enum CategoryType:String {
-    case Category
-    case Subcategory
+    case category
+    case subcategory
 }
 
 
-class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDataSetDelegate, SegueHandlerType {
+class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyDataSetDelegate,SegueHandlerType {
     
     enum SegueIdentifier: String {
         case Unwind
@@ -24,55 +24,72 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
         case BoxCancel
         case Box
     }
-    
+
     var passedCategory: String!
     var selectedCategory: Category!
     var categories = [Category]()
-    var categoryType = CategoryType.Category
+    var categoryType = CategoryType.category
     var categorySelection: CategorySelection = .item
     var categoryIndexPath: NSIndexPath? = nil
+    
+    
+    
+    
+    
     var REF_CATEGORY: FIRDatabaseReference!
     
-   
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated) // No need for semicolon
-    
-        setupPage()
-        
-        self.REF_CATEGORY = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/categories/\(categoryType.rawValue.lowercased())")
-        
-        loadDataFromFirebase()
-
-    }
-    
- 
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        self.tableView.emptyDataSetSource = self
-        self.tableView.emptyDataSetDelegate = self
+        setupPage()
         
         tableView.tableFooterView = UIView()
         tableView.tableFooterView = UIView(frame: CGRect.zero)
- 
+        
+        
+        //        let defaults = UserDefaults.standard
+        //
+        //        if (defaults.object(forKey: "CollectionIdRef") != nil) {
+        //            print("Category PIcker: Getting Defaults")
+        //
+        //            if let collectionId = defaults.string(forKey: "CollectionIdRef") {
+        //                self.collectionID = collectionId
+        //            }
+        //        }
+        
+        self.REF_CATEGORY = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/categories/\(categoryType.rawValue)")
+        
+        loadDataFromFirebase()
+        
     }// End ViewDidLoad
-    
     
     func setupPage() {
         
-          self.title =  categoryType.rawValue
+        
+        switch  categoryType {
+        case .category:
+            self.title = "Categories"
+            
+        case .subcategory:
+            self.title = "Subcategories"
+            
+            
+        }
         
         switch categorySelection {
+            
         case .item:
-         print("This is the ITEMS Category selection")
+            print("This is the ITEMS Category selection")
         case .box:
             print("This is the BOX Category selection")
-
+            
         case .settings:
-            if categoryType == .Subcategory {
+            if categoryType == .subcategory {
                 tableView.allowsSelection = false
             }
+            
         }
+        
     }
     
     
@@ -80,19 +97,22 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
         performSegueWithIdentifier(segueIdentifier: segue , sender: self)
     }
     
-   
+    
     @IBAction func backButtonTapped(_ sender: UIBarButtonItem) {
         switch categorySelection {
-           case .box:
-                segue(segue: .BoxCancel)
-            default:
-                segue(segue: .Cancel)
+        case .box:
+            segue(segue: .BoxCancel)
+        default:
+            segue(segue: .Cancel)
         }
     }
     
+       
     
-//    MARK: DNZ Empty Table View    DZNEmptyDataSetSource, DZNEmptyDataSetDelegate
-        
+    //    MARK: DNZ Empty Table View
+    
+    
+    
     func image(forEmptyDataSet scrollView: UIScrollView!) -> UIImage! {
         return UIImage(named: "package")
     }
@@ -142,7 +162,7 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
     
     
     
-//    MARK: TableView Setup
+    //    MARK: TableView Setup
     
     override  func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath){
         print("CALLING THE SEGUE CELL")
@@ -150,9 +170,9 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
         
         
         performSegueWithIdentifier(segueIdentifier: .Unwind, sender: self)
-
+        
         switch categorySelection {
- 
+            
         case .box:
             segue(segue: .Box)
         default:
@@ -163,6 +183,8 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
     
     
     
+    
+    
     // MARK: - Table view data source
     
     override func numberOfSections(in tableView: UITableView) -> Int {
@@ -170,10 +192,39 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        //        tableView.backgroundView = nil
+        //
+        //
+        //        if categories.count > 0 {
+        //
+        //            self.tableView.separatorStyle = UITableViewCellSeparatorStyle.singleLine
+        //            return categories.count
+        //        } else {
+        //
+        //            let emptyStateLabel = UILabel(frame: CGRect(x: 0, y: 40, width: 270, height: 32))
+        //            emptyStateLabel.font = emptyStateLabel.font.withSize(14)
+        //            emptyStateLabel.text = "Click the ' + ' button to Choose a Category"
+        //            emptyStateLabel.textColor = UIColor.lightGray
+        //            emptyStateLabel.textAlignment = .center;
+        //            tableView.backgroundView = emptyStateLabel
+        //
+        //            self.tableView.separatorStyle = UITableViewCellSeparatorStyle.none
+        //        }
+        //
+        //        return 0
         return categories.count
     }
     
-
+    
+    
+    
+    
+    //    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    //        self.performSegue(withIdentifier: "unwindWithSelectedLocation", sender: self)
+    //
+    //    }
+    
+    
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let category = categories[indexPath.row]
@@ -189,11 +240,43 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
     }
     
     
-    override func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
+    
+    
+    // MARK: UITableViewDelegate Methods
+    func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
+        if editingStyle == .delete {
+            categoryIndexPath = indexPath
+            let category  = categories[indexPath.row]
+            if categoryType.rawValue == "category" {
+                let categoriesToDelete = category.category
+                confirmDelete(Item: categoriesToDelete!)
+                
+            } else {
+                let categoriesToDelete = category.subcategory
+                confirmDelete(Item: categoriesToDelete!)
+                
+            }
+            
+            
+        } else {
+            if editingStyle == .insert {
+                tableView.beginUpdates()
+                
+                //                tableView.insertRowsAtIndexPaths([
+                //                    NSIndexPath(forRow: statuses.count-1, inSection: 0)
+                //                    ], withRowAnimation: .Automatic)
+                //
+                tableView.endUpdates()
+            }
+        }
+    }
+    
+    
+    func tableView(tableView: UITableView, editActionsForRowAtIndexPath indexPath: NSIndexPath) -> [UITableViewRowAction]? {
         
         categoryIndexPath = indexPath as NSIndexPath?
         let categoriesToDelete  = categories[indexPath.row]
-        let categoryName = categoriesToDelete.category!
+        let categoryName = categoriesToDelete.category
         
         
         
@@ -223,6 +306,19 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
     }
     
     
+    // Delete Confirmation and Handling
+    func confirmDelete(Item: String) {
+        let alert = UIAlertController(title: "Delete \(categoryType.rawValue.capitalized)", message: "Are you sure you want to permanently delete '\(Item)' ?", preferredStyle: .actionSheet)
+        
+        let DeleteAction = UIAlertAction(title: "Delete", style: .destructive, handler: handleDeleteItem)
+        let CancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: cancelDeleteItem)
+        
+        alert.addAction(DeleteAction)
+        alert.addAction(CancelAction)
+        
+        
+        self.present(alert, animated: true, completion: nil)
+    }
     
     func handleDeleteItem(alertAction: UIAlertAction!) -> Void {
         if let indexPath = categoryIndexPath {
@@ -244,14 +340,13 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
     
     func cancelDeleteItem(alertAction: UIAlertAction!) {
         categoryIndexPath = nil
-        self.tableView.isEditing = false
-
     }
     
-    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+    func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
         // the cells you would like the actions to appear needs to be editable
         return true
     }
+    
     
     
     
@@ -273,9 +368,9 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
         
         switch categoryType {
             
-        case .Category:
+        case .category:
             exampleText = "Holiday, Christmas, Kitchen, Outdoor"
-        case .Subcategory:
+        case .subcategory:
             exampleText = "Lights, Decorations, Glasses, Camping"
             
         }
@@ -323,13 +418,20 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
     
     func writeToFb(enteredText: String) {
         
+        
+        
+        print("I'm in postToFirebase")
+        
         let newCategoryTrimmed = enteredText.trimmingCharacters(in: NSCharacterSet.whitespaces).capitalized
         
         let category = [categoryType.rawValue : newCategoryTrimmed]
         
+        
+        //        let REF_LOCATION = DataService.ds.REF_BASE.child("/collections/\(self.collectionID!)/inventory/locations/\(locationType.rawValue)").childByAutoId()
+        
         REF_CATEGORY.childByAutoId().setValue(category)
         
-       loadDataFromFirebase()
+        //                self.dismiss(animated: true, completion: {})
         
     }
     
@@ -337,12 +439,14 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
     
     func loadDataFromFirebase() {
         
-        if categoryType == .Subcategory {
+        if categoryType == .subcategory {
             self.REF_CATEGORY = self.REF_CATEGORY.child(passedCategory!)
         }
         UIApplication.shared.isNetworkActivityIndicatorVisible = true
+        
+        
         self.REF_CATEGORY.observe(.value, with: { snapshot in
-
+            
             self.categories = []
             if let snapshots = snapshot.children.allObjects as? [FIRDataSnapshot] {
                 for snap in snapshots {
@@ -363,11 +467,6 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
     }
     
     
- 
-    
- 
-    
-    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         print("prepareForSegue from Category PIcker ")
         if let cell = sender as? UITableViewCell {
@@ -376,12 +475,16 @@ class CategoryPicker: UITableViewController, DZNEmptyDataSetSource, DZNEmptyData
             let indexPath = tableView.indexPath(for: cell)
             
             self.selectedCategory = categories[indexPath!.row]
-         
+            
+            //            if segue.identifier == "unwindWithSelectedLocation" {
+            //                print("saveLocationDetail SEGUE ")
+            //
+            //
+            //                }
         }
         
     }
     
-    var curPage = "CategoryPicker"
 }
 
 

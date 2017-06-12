@@ -6,203 +6,436 @@
 //  Copyright © 2017 Microideas. All rights reserved.
 //
 
+
+
 import UIKit
-import AVFoundation
-import Firebase
+import BarcodeScanner
 
+protocol QrDelegate {
+     func useReturnedFBKey<inventoryObject>(object: inventoryObject, completion: (Bool) -> ()) 
 
-enum qrScanTypes {
-    case ItemSearch
-    case BoxSearch
-    case ItemDetailsBoxSelect
-    case ItemFeedBoxSelect
-    case ItemDetailsQrAssign
-    case BoxDetailsQrAssign
-    case Error
+    
 }
 
-class qrScannerVC: UIViewController, AVCaptureMetadataOutputObjectsDelegate, SegueHandlerType {
-
-    var qrData: String!
+class qrScannerVC: UIViewController, SegueHandlerType  {
     
     
+    var delegate: QrDelegate?
+    var segueID: SegueIdentifier!
     
-    @IBAction func cancelButton(_ sender: UIBarButtonItem) {
-        
-           cancelToItemFeed()
-    }
-
-    func cancelToItemFeed() {
-        
-        segue(segue: .Cancel)
-    }
-    
-    @IBOutlet weak var messageLabel:UILabel!
-
-  
     enum SegueIdentifier: String {
-        case ItemFeed, BoxFeed, ItemDetail, BoxDetails, Cancel  }
-    
-    var qrMode: qrScanTypes = .Error
-    
-    
-    var searchAttempts = 0
-    let REF_BOXES = DataService.ds.REF_INVENTORY.child("boxes")
-    let REF_ITEMS = DataService.ds.REF_INVENTORY.child("items")
-    var REF_QUERY: FIRDatabaseQuery!
-    
-  
-   
+        case unwind_ItemFeed
+        case unwind_ItemDetails
+        case unwind_BoxDetails
 
-    var captureSession:AVCaptureSession?
-    var videoPreviewLayer:AVCaptureVideoPreviewLayer?
-    var qrCodeFrameView:UIView?
-    
-    // Added to support different barcodes
-    
-    let supportedBarCodes = [AVMetadataObjectTypeQRCode]
-
-    
-   
-
-    override var prefersStatusBarHidden : Bool {
-        return true
+        case BoxDetails
+        case ItemDetails
     }
-
-   
     
-//    let supportedBarCodes = [AVMetadataObjectTypeQRCode, AVMetadataObjectTypeCode128Code, AVMetadataObjectTypeCode39Code, AVMetadataObjectTypeCode93Code, AVMetadataObjectTypeUPCECode, AVMetadataObjectTypePDF417Code, AVMetadataObjectTypeEAN13Code, AVMetadataObjectTypeAztecCode]
+    
+    var qrData = QR()
+    
+    lazy var button: UIButton = {
+        let button = UIButton(type: .system)
+        button.backgroundColor = UIColor.black
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 28)
+        button.setTitleColor(UIColor.white, for: UIControlState())
+        button.setTitle("Scan", for: UIControlState())
+        button.addTarget(self, action: #selector(startScanner), for: .touchUpInside)
+        
+        return button
+    }()
+    
+    override func viewWillAppear(_ animated: Bool) {
+       
+        if self.qrData.qrScanType == .OpenSearch {
+            print("qrScanner: ViewDidAppear - .OpenSearch")
+            view.addSubview(button)
+            
+        } else {
+            print("qrScanner: ViewDidAppear - Start Scanning")
+
+            startScanner()
+        }
+        
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-
+        BarcodeScanner.Title.text = NSLocalizedString("Scan QR Code", comment: "")
+        BarcodeScanner.Info.text = NSLocalizedString(
+            "Place the QR Code within the window to scan. The search will start automatically.", comment: "")
+        BarcodeScanner.Info.loadingText = NSLocalizedString("Searching for matching items...", comment: "")
+        BarcodeScanner.Info.notFoundText = NSLocalizedString("No objects                                                                                            found.", comment: "")
         
-         navigationController?.hidesBarsOnTap = true
-        navigationController?.setNavigationBarHidden(true, animated: true)
-  
-        // Get an instance of the AVCaptureDevice class to initialize a device object and provide the video
-        // as the media type parameter.
-        let captureDevice = AVCaptureDevice.defaultDevice(withMediaType: AVMediaTypeVideo)
         
-        do {
-            // Get an instance of the AVCaptureDeviceInput class using the previous device object.
-            let input = try AVCaptureDeviceInput(device: captureDevice)
-            
-            // Initialize the captureSession object.
-            captureSession = AVCaptureSession()
-            // Set the input device on the capture session.
-            captureSession?.addInput(input)
-            
-            // Initialize a AVCaptureMetadataOutput object and set it as the output device to the capture session.
-            let captureMetadataOutput = AVCaptureMetadataOutput()
-            captureSession?.addOutput(captureMetadataOutput)
-            
-            // Set delegate and use the default dispatch queue to execute the call back
-            captureMetadataOutput.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
-            
-            // Detect all the supported bar code
-            captureMetadataOutput.metadataObjectTypes = supportedBarCodes
-            
-            // Initialize the video preview layer and add it as a sublayer to the viewPreview view's layer.
-            videoPreviewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
-            videoPreviewLayer?.videoGravity = AVLayerVideoGravityResizeAspectFill
-            videoPreviewLayer?.frame = view.layer.bounds
-            view.layer.addSublayer(videoPreviewLayer!)
-            
-            // Start video capture
-            captureSession?.startRunning()
-            
-            // Move the message label to the top view
-            view.bringSubview(toFront: messageLabel)
-            
-            // Initialize QR Code Frame to highlight the QR code
-            qrCodeFrameView = UIView()
-            
-            if let qrCodeFrameView = qrCodeFrameView {
-                qrCodeFrameView.layer.borderColor = UIColor.green.cgColor
-                qrCodeFrameView.layer.borderWidth = 2
-                view.addSubview(qrCodeFrameView)
-                view.bringSubview(toFront: qrCodeFrameView)
-            }
-            
-        } catch {
-            // If any error occurs, simply print it out and don't continue any more.
-            print(error)
-            return
-        }
+        view.backgroundColor = UIColor.white
+    }
+    
+    override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        
+        button.frame.size = CGSize(width: 250, height: 80)
+        button.center = view.center
+    }
+    
+    func startScanner() {
+        let controller = BarcodeScannerController()
+        controller.codeDelegate = self
+        controller.errorDelegate = self
+        controller.dismissalDelegate = self
+        present(controller, animated: true, completion: {
+            self.button.removeFromSuperview()
+        })
         
     }
     
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
-    
-   
-    
-    
-    
-    func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputMetadataObjects metadataObjects: [Any]!, from connection: AVCaptureConnection!) {
-        
-        print(" IN THE captureOutput")
-        
-        // Check if the metadataObjects array is not nil and it contains at least one object.
-        if metadataObjects == nil || metadataObjects.count == 0 {
-            qrCodeFrameView?.frame = CGRect.zero
-            messageLabel.text = "No QR code is detected"
-            return
-        }
-        
-        // Get the metadata object.
-        let metadataObj = metadataObjects[0] as! AVMetadataMachineReadableCodeObject
-        
-        // Here we use filter method to check if the type of metadataObj is supported
-        // Instead of hardcoding the AVMetadataObjectTypeQRCode, we check if the type
-        // can be found in the array of supported bar codes.
-        if supportedBarCodes.contains(metadataObj.type) {
-            //        if metadataObj.type == AVMetadataObjectTypeQRCode {
-            // If the found metadata is equal to the QR code metadata then update the status label's text and set the bounds
-            let barCodeObject = videoPreviewLayer?.transformedMetadataObject(for: metadataObj)
-            qrCodeFrameView?.frame = barCodeObject!.bounds
-            
-            if metadataObj.stringValue != nil {
-                let qrString = metadataObj.stringValue
-                self.qrData = qrString!
-
-                messageLabel.text = qrString
-                captureSession?.stopRunning()
-             
-                print("Finished scanning - mode is \(qrMode)")
-                switch qrMode{
-                    
-                case .ItemSearch, .ItemFeedBoxSelect, .ItemDetailsQrAssign:
-                    segue(segue: .ItemFeed)
-                    
-                case .BoxSearch, .BoxDetailsQrAssign:
-                    segue(segue: .BoxFeed)
-                
-                default:
-                 print(" Error in QR Scanning")
-                }
-
-                
-                }
-            }
-        }
-
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-  
-       }
-    
-    func segue(segue: SegueIdentifier) {
-        print("SEGUE out of QR using \(segue)")
-        performSegueWithIdentifier(segueIdentifier: segue, sender: self)
-//        self.performSegueWithIdentifier(segueIdentifier: segue, sender: self)
+        print("qrScanVC= prepareForSeg")
 
+        switch segueIdentifierForSegue(segue: segue) {
+            
+        case .ItemDetails:
+            print(" prepareForSeg ItemDetails")
+
+            if let destination = segue.destination as? ItemDetailsVC {
+                destination.itemKeyPassed = qrData.item?.itemKey
+                print(" destination.itemKeyPassed \(String(describing: qrData.item?.itemKey))")
+
+                destination.itemType = .existing
+            }
+            
+        case .BoxDetails:
+            print(" prepareForSeg BoxDetails")
+
+            if let destination = segue.destination as? BoxDetails {
+               destination.box = qrData.box
+                destination.boxSegueType = .qr
+                
+            }
+            
+        default:
+            break
+        }
     }
+    
+    
+    var curPage = "QRScanner"
+    
+  
+}
+
+extension qrScannerVC: BarcodeScannerErrorDelegate {
+    
+    func barcodeScanner(_ controller: BarcodeScannerController, didReceiveError error: Error) {
+        print(error)
+    }
+}
+
+extension qrScannerVC: BarcodeScannerDismissalDelegate {
+    
+    func barcodeScannerDidDismiss(_ controller: BarcodeScannerController) {
+        controller.dismiss(animated: true, completion: nil)
+    }
+}
+
+
+extension qrScannerVC: BarcodeScannerCodeDelegate {
+    
+    func barcodeScanner(_ controller: BarcodeScannerController, didCaptureCode code: String, type: String) {
+        print(code)
+        print(type)
+        
+        
+        
+        let delayTime = DispatchTime.now() + Double(Int64(3 * Double(NSEC_PER_SEC))) / Double(NSEC_PER_SEC)
+        DispatchQueue.main.asyncAfter(deadline: delayTime) {
+            
+            
+            self.qrData.getDataFromFirebase(scannedString: code,  callback: {()-> Void in
+                //stuff here happens after fb is finished
+                print("7 got type \(self.qrData.objectTypeReturned)  ")
+                print("8 got key \(String(describing: self.qrData.objectKeyReturned))  ")
+                let intentions = self.qrData.qrScanType
+                  print("finished FB- scanType is \(intentions)")
+             })
+            
+            
+            let delayTime = DispatchTime.now() + Double(Int64(2 * Double(NSEC_PER_SEC))) / Double(NSEC_PER_SEC)
+            DispatchQueue.main.asyncAfter(deadline: delayTime) {
+                
+        print("in the asyncAfterDeadline \(String(describing:self.qrData.objectTypeReturned)))")
+
+                print("in the asyncAfterDeadline \(String(describing: self.qrData.item?.itemKey))")
+ 
+                
+                switch self.qrData.qrScanType {
+                    
+                case .OpenSearch:
+                    print("OpenSearch")
+
+                    switch self.qrData.objectTypeReturned {
+                    case .item:
+                             self.performSegueWithIdentifier(segueIdentifier: .ItemDetails, sender: self)
+//                             self.tabBarController?.selectedIndex = 0
+
+                    case .box:
+                            self.performSegueWithIdentifier(segueIdentifier: .BoxDetails, sender: self)
+                            self.tabBarController?.selectedIndex = 1
+
+                    case .none:
+                        self.showQRAlertView(errorType: .noResults)
+                        break
+                    }
+                    
+                case .ItemDetailsBoxSelect:
+                    print("ItemDetailsBoxSelect")
+                    
+                    switch self.qrData.objectTypeReturned {
+                    case .item:
+                        self.showQRAlertView(errorType: .objIsItemMstBeBox)
+                    case .box:
+                        self.delegate?.useReturnedFBKey(object: self.qrData.box) { success in
+                        self.performSegueWithIdentifier(segueIdentifier: .unwind_ItemDetails, sender: self)
+                        self.tabBarController?.selectedIndex = 0
+                        }
+                    case .none:
+                        self.showQRAlertView(errorType: .noResults)
+                        break
+                    }
+                case .ItemFeedBoxSelect:
+                    print("Scan Type is  ItemFeedBoxSelect")
+                    
+                    switch self.qrData.objectTypeReturned {
+                    case .item:
+                        print("objType was item, s/b box")
+                        
+                        self.showQRAlertView(errorType: .objIsItemMstBeBox)
+                    case .box:
+                        print("objType is box")
+                        self.delegate?.useReturnedFBKey(object: self.qrData.box) { success in
+                        self.performSegueWithIdentifier(segueIdentifier: .unwind_ItemFeed, sender: self)
+                        self.tabBarController?.selectedIndex = 0
+                        }
+                     case .none:
+                        print("objType noResults")
+                        self.showQRAlertView(errorType: .noResults)
+                    }
+            
+                case .ItemDetailsQrAssign:
+                    print("Scan Type is  ItemDetailsQrAssign")
+
+                    switch self.qrData.objectTypeReturned {
+                    case .item:
+                        print("objType is item this QR is taken")
+                        self.showQRAlertView(errorType: .qrTaken)
+
+                    case .box:
+                        print("objType is box")
+                        self.showQRAlertView(errorType: .qrTaken)
+
+                    case .none:
+                        print("objType noResults")
+//                        goood we can use it
+                        self.delegate?.useReturnedFBKey(object: self.qrData.scannedString){ success in
+                        self.performSegueWithIdentifier(segueIdentifier: .unwind_ItemDetails, sender: self)
+                        self.tabBarController?.selectedIndex = 0
+                    }
+                     }
+
+                case .BoxDetailsQrAssign:
+                    
+                    switch self.qrData.objectTypeReturned {
+                    case .item:
+                        print("objType is item this QR is taken")
+                        self.showQRAlertView(errorType: .qrTaken)
+                        
+                    case .box:
+                        print("objType is box")
+                        self.showQRAlertView(errorType: .qrTaken)
+                        
+                    case .none:
+                        print("objType noResults")
+                        //                        goood we can use it
+                        self.delegate?.useReturnedFBKey(object: self.qrData.scannedString) { success in
+                        self.performSegueWithIdentifier(segueIdentifier: .unwind_BoxDetails, sender: self)
+                        self.tabBarController?.selectedIndex = 1
+                        }
+                    }
+                }
+               
+                    controller.dismiss(animated: true, completion: nil)
+                
+                
+                }
+            }
+            
+        }
+    
     
    
 }
 
+extension qrScannerVC {
+   
+}
 
+
+
+extension qrScannerVC {
+    
+    //    MARK: SCLAlertView
+    func showQRAlertView(errorType: MessageType)  {
+        print("showQRAlertView")
+        
+        //        ALERT: Finish implementing enums for error messages
+        
+        let title = "Ut Oh!"
+        
+//        let title = "Unable To Locate"
+//        let subtitle = "Items or Boxes with this QR code does not exist.\nCreate something new using this QR Code?"
+        
+        // Create custom Appearance Configuration
+        let appearance = SCLAlertView.SCLAppearance(
+            kTitleFont: UIFont(name: SFDRegular, size: 20)!,
+            kTextFont: UIFont(name: SFTLight, size: 19)!,
+            kButtonFont: UIFont(name: SFTRegular, size: 14)!,
+            showCloseButton: false,
+            dynamicAnimatorActive: true
+        )
+        
+        
+        let alert = SCLAlertView(appearance: appearance)
+        _ = alert.addButton("New Box") {
+            print("Create a new BOX")
+            
+            
+        }
+        _ = alert.addButton("New Item") {
+            print("Create a new Item")
+            
+            
+        }
+        
+        _ = alert.addButton("Cancel") {
+            
+        }
+        DispatchQueue.main.async {
+            
+            _ = alert.showQRerror(title, subTitle: errorType.description)
+            
+        }
+        
+    }
+    
+}
+
+//backup
+/*
+func barcodeScanner(_ controller: BarcodeScannerController, didCaptureCode code: String, type: String) {
+    print(code)
+    print(type)
+    
+    var tabIndex: Int!
+    var succesful: Bool = false
+    
+    let delayTime = DispatchTime.now() + Double(Int64(3 * Double(NSEC_PER_SEC))) / Double(NSEC_PER_SEC)
+    DispatchQueue.main.asyncAfter(deadline: delayTime) {
+        
+        
+        self.qrData.getDataFromFirebase(scannedString: code,  callback: {(qrObject)-> Void in
+            //stuff here happens after fb is finished
+            print("7 got type \(qrObject.objectTypeReturned)  ")
+            print("8 got key \(String(describing: qrObject.objectKeyReturned))  ")
+            let intentions = self.qrData.qrScanType
+            let objType = qrObject.objectTypeReturned
+            print("finished FB- scanType is \(intentions)")
+        })
+        
+        
+        let delayTime = DispatchTime.now() + Double(Int64(2 * Double(NSEC_PER_SEC))) / Double(NSEC_PER_SEC)
+        DispatchQueue.main.asyncAfter(deadline: delayTime) {
+            print("in the asyncAfterDeadline")
+            
+            switch self.qrData.qrScanType {
+            case .OpenSearch:
+                print("OpenSearch")
+                
+                switch self.qrData.objectTypeReturned {
+                case .item:
+                    self.segueID = .ItemDetails
+                    succesful = true
+                    tabIndex = 0
+                //                        in prepare for segue, pass itemDetails the item Key
+                case .box:
+                    self.segueID = .BoxDetails
+                    tabIndex = 1
+                //                        in prepare for segue, pass itemDetails the item Key
+                case .none:
+                    self.showQRAlertView(errorType: .noResults)
+                    return
+                }
+            case .ItemDetailsBoxSelect:
+                print("ItemDetailsBoxSelect")
+                
+                //                     if returned Key is a box, assign item to box, unwind to iTemDetails
+                tabIndex = 0
+                self.segueID = .unwind_ItemDetails
+                print("segue to itemDetails")
+                //                    if returned object is box, save item to box,
+            //                    else error message  (not box: error try again, not found at all: create new empty box or change QR code to this box ?
+            case .ItemFeedBoxSelect:
+                print("Scan Type is  ItemFeedBoxSelect")
+                
+                switch self.qrData.objectTypeReturned {
+                case .item:
+                    print("objType was item, s/b box")
+                    
+                    self.showQRAlertView(errorType: .objIsItemMstBeBox)
+                case .box:
+                    print("objType is box")
+                    succesful = true
+                case .none:
+                    self.showQRAlertView(errorType: .noResults)
+                }
+                tabIndex = 0
+                self.segueID = .unwind_ItemFeed
+            case .ItemDetailsQrAssign:
+                tabIndex = 0
+                self.segueID = .unwind_ItemDetails
+                print("segue to itemDetails")
+            case .BoxDetailsQrAssign:
+                tabIndex = 1
+                self.segueID = .BoxDetails
+                print("segue to BoxDetails")
+            }
+            if succesful {
+                print("in the asyncAfterDeadline")
+                self.delegate?.useReturnedFBKey(key: code)
+                
+                
+                controller.dismiss(animated: true, completion: nil)
+                self.tabBarController?.selectedIndex = tabIndex
+                self.performSegueWithIdentifier(segueIdentifier: self.segueID, sender: self)
+                
+            } else {
+                print("else scan failed ")
+                
+                controller.resetWithError(message: "")
+                
+            }
+        }
+        
+    }
+}
+*/
+//enum qrScanTypes {
+//    case ItemSearch
+//    case BoxSearch
+//    case ItemDetailsBoxSelect
+//    case ItemFeedBoxSelect
+//    case ItemDetailsQrAssign
+//    case BoxDetailsQrAssign
+//    case Error
+//}

@@ -12,7 +12,7 @@ class TabySegmentedControl: UISegmentedControl {
     
     func initUI(){
         setupBackground()
-        setupFonts()
+       setupFonts()
     }
     
     func setupBackground(){
@@ -30,7 +30,9 @@ class TabySegmentedControl: UISegmentedControl {
     }
     
     func setupFonts(){
-        let font = UIFont.systemFont(ofSize: 16.0)
+     let font = UIFont(name: SFDLight, size: 11)
+
+//        let font = UIFont.systemFont(ofSize: 16.0)
         
         
         let normalTextAttributes = [

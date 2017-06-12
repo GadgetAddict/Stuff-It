@@ -9,6 +9,8 @@
 import UIKit
 
 class EmptySegue: UIStoryboardSegue{
+
+    //This is for the container views i was going to do with BoxDetails
     
     override func perform() {
     

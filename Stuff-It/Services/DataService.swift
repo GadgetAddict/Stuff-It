@@ -14,6 +14,7 @@ import FirebaseStorage
 let DB_BASE = FIRDatabase.database().reference()
 let STORAGE_BASE = FIRStorage.storage().reference()
 
+ 
 class DataService {
     
     static let ds = DataService()
@@ -58,7 +59,45 @@ class DataService {
     }
     
     
+    func getItems(parameter: String, boxKey: String?,  onCompletion: @escaping ([Item], String) -> Void) {
+        
+        let REF = DataService.ds.REF_INVENTORY.child(parameter)
+//        print("DataService- Get Items  ")
 
+        //        REF.queryOrdered(byChild: "box/itemBoxKey").queryEqual(toValue: boxKey).observe(.value, with: { snapshot in
+        
+//        print("Item Feed - REF \(REF)")
+
+        
+        REF.observe(.value, with: { snapshot in
+            var items = [Item]()
+            
+            if let snapshots = snapshot.children.allObjects as? [FIRDataSnapshot] {
+                for snap in snapshots {
+                    if let itemDict = snap.value as? Dictionary<String, AnyObject> {
+                        let key = snap.key
+//                        print("DS.SnapKey \(key)")
+                        let item = Item(itemKey: key, dictionary: itemDict)
+                        
+                        
+                        if let childSnapshotDict = snapshot.childSnapshot(forPath: "\(key)/box").value as? Dictionary<String, AnyObject> {
+                            let itemBoxNumber = childSnapshotDict["itemBoxNumber"]
+                            let itemBoxKey = childSnapshotDict["itemBoxKey"]
+                            let itemIsBoxed = childSnapshotDict["itemIsBoxed"]
+                            
+                            
+                            item.itemBoxKey = itemBoxKey as! String?
+                            item.itemBoxNum = itemBoxNumber as! String?
+                            item.itemIsBoxed = itemIsBoxed as! Bool
+                        }
+                        items.append(item)
+                    }
+                }
+            }
+            let retString = "Told you so"
+            onCompletion(items, retString)
+        })
+    }
 
 func qrSearch(qrString: String) -> String {
 

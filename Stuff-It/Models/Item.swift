@@ -27,7 +27,7 @@ class Item  {
     private var _itemBoxLocationArea: String?
     private var _itemBoxLocationDetail: String?
 
-    private var _itemIsBoxed: Bool!
+    private var _itemIsBoxed: Bool?
     private var _itemQty: String?
     private var _itemFragile: Bool!
     private var _tags: [String]?
@@ -75,7 +75,7 @@ class Item  {
     
     
 
-    var itemIsBoxed: Bool  {
+    var itemIsBoxed: Bool?  {
         get {
             return _itemIsBoxed
         }
@@ -225,10 +225,10 @@ class Item  {
         }
         
         _itemRef = DataService.ds.REF_BASE.child("/collections/\(COLLECTION_ID!)/inventory/items/\(itemKey)")
-
     }
 
      
+    
     
     func removeBoxDetailsFromItem()  {
         print("From: \(self.curPage) ->  REMOVING THE ITEM ")
@@ -277,13 +277,13 @@ print("From: \(curPage) -> itemSaving should be \(itemKey)  ")
         completion()
     }
 
-        
-        
+    
    
+    
+    
+    
+    
     var curPage = "Item Model"
-        
-    
-    
     
 }
 

@@ -11,13 +11,10 @@ import UIKit
 import Firebase
 import DZNEmptyDataSet
 import Kingfisher
-import MessageUI
 
 
+class ItemFeedVC: UITableViewController ,UINavigationControllerDelegate,DZNEmptyDataSetSource, DZNEmptyDataSetDelegate, SegueHandlerType{
 
-class ItemFeedVC: UITableViewController ,UINavigationControllerDelegate,DZNEmptyDataSetSource, DZNEmptyDataSetDelegate, MFMailComposeViewControllerDelegate, SegueHandlerType, qrDelegate {
-    
-    
     
     enum SegueIdentifier: String {
         case New
@@ -27,16 +24,15 @@ class ItemFeedVC: UITableViewController ,UINavigationControllerDelegate,DZNEmpty
         case ScanQR
     }
     
-    var qrMode: qrScanTypes = .ItemSearch
-    
-    let searchController = UISearchController(searchResultsController: nil)
+ 
+     let searchController = UISearchController(searchResultsController: nil)
     var filteredItems = [Item]()
     var items = [Item]()
-    var itemToPass: Item?
-    var boxToPass: Box?
+    var item: Item!
+    var box: Box!
     var itemIsBoxed: Bool!
+  
     lazy var itemIndexPath: NSIndexPath? = nil
-    
     let REF_ITEMS =  DataService.ds.REF_INVENTORY.child("items")
     
     
@@ -45,32 +41,41 @@ class ItemFeedVC: UITableViewController ,UINavigationControllerDelegate,DZNEmpty
         performSegueWithIdentifier(segueIdentifier: .New, sender: self)
     }
     
-    
-    
+  
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        print("Item Feed - View WIll Appear ")
-        loadDataFromFirebase()
-    }
+//        print("Item Feed - View WIll Appear ")
+      
+            DataService.ds.getItems(parameter: "items", boxKey: nil, onCompletion: {(items, retString)-> Void in
+//               print("I'm out of the closure")
+//                
+//                
+//                print("I have return string \(retString)")
+                self.items = items
+                DispatchQueue.main.async(execute: {
+                    self.tableView.reloadData()
+                })
+            })
+ 
+            }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         self.REF_ITEMS.removeAllObservers()
     }
     
-    
+ 
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         print("Item FEed View Did Load ")
-        createUIBarButtons()
-        
+         
         //        KingfisherManager.shared.cache.clearMemoryCache()
         //        KingfisherManager.shared.cache.clearDiskCache()
         
         
-        
+//        setTableViewBackgroundGradient(sender: self)
         
         // Setup the Search Controller
         searchController.searchResultsUpdater = self
@@ -95,17 +100,26 @@ class ItemFeedVC: UITableViewController ,UINavigationControllerDelegate,DZNEmpty
         
         
     }
+   
     
-    
-    func qrScan() {
-        qrMode = .ItemSearch
-        DispatchQueue.main.async {
-            self.performSegueWithIdentifier(segueIdentifier: .ScanQR, sender: self)
-        }
+    func setTableViewBackgroundGradient(sender: UITableViewController) { //, _ topColor:UIColor,_ bottomColor:UIColor) {
+        let topColor = UIColor.blue
+        let bottomColor = UIColor.cyan
+        let gradientBackgroundColors = [topColor.cgColor, bottomColor.cgColor]
+        let gradientLocations = [0.0,1.0]
+        
+        let gradientLayer = CAGradientLayer()
+        gradientLayer.colors = gradientBackgroundColors
+        gradientLayer.locations = gradientLocations as [NSNumber]
+        
+        gradientLayer.frame = sender.tableView.bounds
+        let backgroundView = UIView(frame: sender.tableView.bounds)
+        backgroundView.layer.insertSublayer(gradientLayer, at: 0)
+        sender.tableView.backgroundView = backgroundView
     }
     
-    
-    
+
+//not used - dataservice gets data now - try this for other Feeds
     func loadDataFromFirebase() {
         UIApplication.shared.isNetworkActivityIndicatorVisible = true
         
@@ -123,9 +137,17 @@ class ItemFeedVC: UITableViewController ,UINavigationControllerDelegate,DZNEmpty
                             let itemIsBoxed = childSnapshotDict["itemIsBoxed"]
                             
                             
+
+                            if let isBoxed = itemIsBoxed {
+                                item.itemIsBoxed = isBoxed as? Bool
+                            }
+                            
+                            if let boxKey = itemBoxKey {
+                                item.itemBoxKey = boxKey as? String
+                            }
+                            
                             item.itemBoxKey = itemBoxKey as! String?
                             item.itemBoxNum = itemBoxNumber as! String?
-                            item.itemIsBoxed = itemIsBoxed as! Bool
                         }
                         self.items.append(item)
                     }
@@ -144,7 +166,7 @@ class ItemFeedVC: UITableViewController ,UINavigationControllerDelegate,DZNEmpty
         _ = navigationController?.popViewController(animated: true)
     }
     
-    
+//    MARK: DZNEmptyDataSet
     func image(forEmptyDataSet scrollView: UIScrollView!) -> UIImage! {
         var image: String!
         if searchController.isActive {
@@ -271,43 +293,50 @@ class ItemFeedVC: UITableViewController ,UINavigationControllerDelegate,DZNEmpty
     }
     
     
-    
-    
     //    MARK: Search Function
-    
-    func filterContentForSearchText(_ searchText: String, scope: String = "Name") {
+
+    func filterSearchText() {
+        print("ItemFeed Running filterSearchText")
         
+        let searchText = searchController.searchBar.text
+        let scope = searchController.searchBar.selectedScopeButtonIndex
+        // Filter the array using the filter method
         filteredItems = items.filter({( item : Item) -> Bool in
-            var searchedItem: String!
-            var categoryMatch: Bool!
-            switch scope {
-            case "Name":
-                categoryMatch = (scope == "Name") || (item.itemName == scope)
-                searchedItem = item.itemName
-            case "Category":
-                categoryMatch = (scope == "Category") || (item.itemCategory == scope)
-                searchedItem = item.itemCategory
-                
+            
+            var fieldToSearch: String!
+            switch (scope) {
+            case (0):
+                fieldToSearch = item.itemName
+            case (1):
+                fieldToSearch = item.itemCategory
+      
             default:
-                categoryMatch = (scope == "Name") || (item.itemName == scope)
-                searchedItem = item.itemName
-                
+                fieldToSearch = nil
             }
             
-            
-            let result = categoryMatch && searchedItem.lowercased().contains(searchText.lowercased())
-            return result
+            return fieldToSearch.lowercased().range(of: searchText!.lowercased()) != nil
         })
         tableView.reloadData()
     }
     
-    
-    
+    override func scrollViewWillBeginDragging(_ scrollView: UIScrollView)
+    {
+        //dismiss the keyboard if the search results are scrolled
+        searchController.searchBar.resignFirstResponder()
+    }
+   
     
     override func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
         
+        var itemToModify: Item
         itemIndexPath = indexPath as NSIndexPath?
-        let itemToModify  = items[indexPath.row]
+        
+        if searchController.isActive {
+             itemToModify  = filteredItems[indexPath.row]
+        } else {
+             itemToModify  = items[indexPath.row]
+        }
+        
         let itemName = itemToModify.itemName
         //                    let itemKey = itemToModify.itemKey
         
@@ -333,7 +362,7 @@ class ItemFeedVC: UITableViewController ,UINavigationControllerDelegate,DZNEmpty
         let addToBoxAction = UITableViewRowAction(style: UITableViewRowActionStyle.normal, title: "\u{1f4e6}\n Box", handler: { (action: UITableViewRowAction, indexPath: IndexPath) -> Void in
             let boxMenu = UIAlertController(title: nil, message: "Add Item to Box", preferredStyle: UIAlertControllerStyle.actionSheet)
             let ScanAction = UIAlertAction(title: "Scan QR", style: .default, handler: self.scanForBox)
-            let PickAction = UIAlertAction(title: "Choose from List", style: .default, handler: self.pickForBox)
+            let PickAction = UIAlertAction(title: "Choose from List", style: .default, handler: self.pickForBoxFromList)
             let CancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: self.cancelDeleteItem)
             boxMenu.addAction(ScanAction)
             boxMenu.addAction(PickAction)
@@ -352,17 +381,32 @@ class ItemFeedVC: UITableViewController ,UINavigationControllerDelegate,DZNEmpty
     
     func handleDeleteItem(alertAction: UIAlertAction!) -> Void {
         if let indexPath = itemIndexPath {
-            //             tableView.beginUpdates()
-            let itemObject  = items[indexPath.row]
+            
+            var itemObject: Item
+            if searchController.isActive {
+                itemObject = filteredItems[indexPath.row]
+                searchController.isActive = false
+            } else {
+                itemObject = items[indexPath.row]
+            }
+
+            
+            if itemObject.itemIsBoxed! {
             //            print("From: \(self.curPage) ->  get itemobjec: \(itemObject.itemName)   boxKey: \(itemObject.itemBoxKey) ")
             
             let box = Box(boxKey: itemObject.itemBoxKey!, boxNumber: nil)
             box.removeItemDetailsFromBox(itemKey: itemObject.itemKey)
+            }
+            
             let itemKey = itemObject.itemKey
             self.REF_ITEMS.child(itemKey).removeValue()
             itemIndexPath = nil
             tableView.reloadData()
-            
+         
+            if searchController.isActive {
+                print("End of Delete Function")
+                filterSearchText()
+            }
         }
     }
     
@@ -380,18 +424,32 @@ class ItemFeedVC: UITableViewController ,UINavigationControllerDelegate,DZNEmpty
     
     func scanForBox(alertAction: UIAlertAction!) -> Void {
         if let indexPath = itemIndexPath {
-            self.itemToPass = items[indexPath.row]
-            
-            qrMode = .ItemFeedBoxSelect
-            performSegueWithIdentifier(segueIdentifier: .ScanQR, sender: self)
+     
+    if searchController.isActive {
+                self.item = filteredItems[indexPath.row]
+            } else {
+                self.item = items[indexPath.row]
+            }
+
+           
+//            tabBarController?.selectedIndex = 2
+//            segue instead to set delegate in prepareForSeg
+        self.performSegueWithIdentifier(segueIdentifier: .ScanQR, sender: self)
             
         }
     }
     
-    func pickForBox(alertAction: UIAlertAction) -> Void {
+    func pickForBoxFromList(alertAction: UIAlertAction) -> Void {
         if let indexPath = itemIndexPath {
-            self.itemToPass = items[indexPath.row]
+
+        if searchController.isActive {
+            self.item = filteredItems[indexPath.row]
+
+        } else {
+            self.item = items[indexPath.row]
+ 
         }
+                }
         performSegueWithIdentifier(segueIdentifier: .BoxFeed, sender: self)
     }
     
@@ -403,221 +461,150 @@ class ItemFeedVC: UITableViewController ,UINavigationControllerDelegate,DZNEmpty
         
     }
     
-    
+ 
     @IBAction func unwindToItemFeedFromQRsearch(_ segue:UIStoryboardSegue) {
         print("1 unwindToItemFeedFromQRsearch")
-        
-        if let qrScannerViewController = segue.source as? qrScannerVC {
-            if let scannedString =  qrScannerViewController.qrData {
-                print("2 if let scannedString \(scannedString) ")
-                
-                getDataFromFirebase(qrScan: scannedString, callback: {(key, objectTypeReturned)-> Void in
-                    print("7 got a \(objectTypeReturned) key  -> \(String(describing: key)) ")
-                    
-                    switch self.qrMode {
-                    case .ItemSearch:
-                        if objectTypeReturned == .BoxSearch {
-                            self.qrMode = .BoxSearch
-                        }
-                        
-                    case .ItemFeedBoxSelect:
-                        if objectTypeReturned == .ItemSearch {
-                            self.showQRAlertView(errorType: .objIsItemMstBeBox)
-                        }
-                    default:
-                        print("default")
-                    }
-                    
-                    
-                    if objectTypeReturned == .Error {
-                        self.showQRAlertView(errorType: .noResults)
-                        
-                    } else {
-                        
-                        if let keyReturned = key {
-                            print("438 - if let KeyReturnd \(key)")
-                            self.prepareObjectKeyToPass(objectKey: keyReturned )
-                            
-                        }
-                    }
-                })
-                print("4 out of call back I think ")
-                
-                
-            }
-        }
-        print("5 out of ScannerVC segue Func () ")
-        
-    }
-    
-    func prepareObjectKeyToPass(objectKey: String)  {
-        print("prepareObjectKeyToPass-objectkey: \(objectKey)")
-        
-        
-        switch qrMode {
-        case .ItemSearch, .ItemDetailsQrAssign:
-            print("perform segue to ItemDetails")
-            self.itemToPass = Item(itemKey: objectKey, itemBoxed: nil, itemCategory: nil)
-            self.performSegueWithIdentifier(segueIdentifier: .Existing, sender: self)
-            
-            
-            
-        case .BoxSearch:
-            print("save BoxSearch")
-            
-            self.boxToPass = Box(boxKey: objectKey, boxNumber: nil)
-            
-            self.performSegueWithIdentifier(segueIdentifier: .BoxDetails, sender: self)
-            
-            
-            
-        case .ItemFeedBoxSelect:
-            print("save item/box assignment")
-            let box = Box(boxKey: objectKey, boxNumber: nil)
-            
-            assignBox(selectedBox:box, itemToBox: self.itemToPass!)
-            
-        case .Error:
-            print("ERRRRROORRRRR")
-            
-            showQRAlertView(errorType: .iFailed)
-            
-        default:
-            print("default")
-        }
     }
     
     
-    //    MARK: SCLAlertView
-    func showQRAlertView(errorType: ErrorMessages)  {
-        print("showQRAlertView")
-        
-        //        ALERT: Finish implementing enums for error messages
-        
-        let title = "Unable To Locate"
-        let subtitle = "Items or Boxes with this QR code does not exist.\nCreate something new using this QR Code?"
-        
-        // Create custom Appearance Configuration
-        let appearance = SCLAlertView.SCLAppearance(
-            kTitleFont: UIFont(name: SFDRegular, size: 20)!,
-            kTextFont: UIFont(name: SFTLight, size: 19)!,
-            kButtonFont: UIFont(name: SFTRegular, size: 14)!,
-            showCloseButton: false,
-            dynamicAnimatorActive: true
-        )
-        
-        
-        let alert = SCLAlertView(appearance: appearance)
-        _ = alert.addButton("New Box") {
-            print("Create a new BOX")
-            
-            
-        }
-        _ = alert.addButton("New Item") {
-            print("Create a new Item")
-            
-            
-        }
-        
-        _ = alert.addButton("Cancel") {
-            
-        }
-        DispatchQueue.main.async {
-            
-            _ = alert.showQRerror(title, subTitle: subtitle)
-            
-        }
-        
-    }
-    
+  
     
     //    MARK: Unwind Box Select
     @IBAction func unwindToItemFeed_FromBoxSel(_ segue:UIStoryboardSegue) {
-        //        test - did we save the itemTopass in ItemFeedVC
-        print("this is your itemTopass that i saved \(self.itemToPass?.itemName)")
         
         if let boxFeedViewController = segue.source as? BoxFeedVC {
-            let selectedBox = boxFeedViewController.boxToPass!
-            //            let itemToBox = boxFeedViewController.itemPassed!
+            self.box = boxFeedViewController.box!
+            assignBox()
             
-            assignBox(selectedBox: selectedBox, itemToBox: self.itemToPass!)
         }
     }
     
-    func assignBox(selectedBox:Box, itemToBox: Item)  {
+   
+    func testMatchingCategories( completion: (Bool) -> ()) {
+
+        print("assignBox HAS BEEN CALLED - selectedBox is: \(self.box.boxKey)")
+//        check for category match
+        var boxChangeApproved = false
         
-        if let oldBoxKey = itemToBox.itemBoxKey {
+        if self.item.itemCategory == self.box.boxCategory {
+             boxChangeApproved = true
+        } else {
+              catMismatchAlert()
+            }
+           completion(boxChangeApproved)
+    }
+    
+    func assignBox() {
+        
+            
+            if let oldBoxKey = self.item.itemBoxKey {
             let oldBox = Box(boxKey: oldBoxKey, boxNumber: nil)
             
             //              Remove item from it's old box'
-            oldBox.removeItemDetailsFromBox(itemKey: itemToBox.itemKey)
+            oldBox.removeItemDetailsFromBox(itemKey: self.item.itemKey)
         }
         
         //          Add  Item Details to Box in Firebase
-        selectedBox.addItemDetailsToBox(itemKey: itemToBox.itemKey)
+        self.box.addItemDetailsToBox(itemKey: self.item.itemKey)
         
         //          Add Box to Item in Firebase
-        itemToBox.addBoxDetailsToItem(box: selectedBox)
-    }
+        self.item.addBoxDetailsToItem(box: self.box)
+        
+
+        }
+ 
+    
+    
+    
+    func catMismatchAlert( ){
+        
+//    var override = false
+        
+            DispatchQueue.main.async {
+                let alert = SCLAlertView()
+                _ = alert.addButton("Add Anyway") {
+                    print("I say ADD ANYWAYS")
+                   
+                    self.assignBox()
+//                    self.box.setMixedContent()
+                    
+                    // add flag to box to make it mixedContent
+                }
+                _ = alert.showWarning("Category Mismatch", subTitle: "The Box and Item Category do not match.")
+                //                _ = alert.showItemAssignBox(title, subTitle: subtitle, closeButtonTitle: "Cancel", icon: icon!, colorStyle: color )
+            }
+                }
+//    func assignBox(selectedBox:Box, itemToBox: Item)  {
+//        print("assignBox HAS BEEN CALLED - selectedBox is: \(selectedBox.boxKey)")
+//        if let oldBoxKey = itemToBox.itemBoxKey {
+//            let oldBox = Box(boxKey: oldBoxKey, boxNumber: nil)
+//            
+//            //              Remove item from it's old box'
+//            oldBox.removeItemDetailsFromBox(itemKey: itemToBox.itemKey)
+//        }
+//        
+//        //          Add  Item Details to Box in Firebase
+//        selectedBox.addItemDetailsToBox(itemKey: itemToBox.itemKey)
+//        
+//        //          Add Box to Item in Firebase
+//        itemToBox.addBoxDetailsToItem(box: selectedBox)
+//    }
+    
+   
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        
+        print("itemFeed prepareForSegue")
         
         if let cell = sender as? UITableViewCell {
             let indexPath = tableView.indexPath(for: cell)
             itemIndexPath = indexPath as NSIndexPath?
-            //            test if vc can hold this item until we unwind back
-            self.itemToPass  = items[itemIndexPath!.row]
+            
+            if searchController.isActive {
+                 self.item  = filteredItems[itemIndexPath!.row]
+
+            } else {
+                self.item  = items[itemIndexPath!.row]
+            }
             
         }
         
         switch segueIdentifierForSegue(segue: segue) {
             
         case .ScanQR:
-            
-            if let navVC = segue.destination as? UINavigationController{
-                if let qrScannerVC = navVC.viewControllers[0] as? qrScannerVC{
-                    qrScannerVC.qrMode = qrMode
-                }
+            print("itemFeed ScanQR")
+
+//            if let navVC = segue.destination as? UINavigationController{
+//            if let qrScannerVC = navVC.viewControllers[0] as? qrScannerVC{
+
+            if let qrScannerVC = segue.destination as? qrScannerVC{
+                    qrScannerVC.qrData = QR()
+                    qrScannerVC.qrData.qrScanType = .ItemFeedBoxSelect
+                    qrScannerVC.delegate = self 
+                
             } else {
                 let destiny = segue.destination
                 print("destination is \(destiny)")
             }
+            
         case .Existing:
-            var  itemToPass: Item!
-            if let _ = sender as? UITableViewCell {
-                itemToPass = items[itemIndexPath!.row]
-            } else {
-                if let test = self.itemToPass?.itemKey{
-                    print("THIS TEST IS GOOD < WTF > \(test)")
-                    
-                    itemToPass = self.itemToPass
-                }
-            }
+            print("itemFeed Existing")
+
+//            MARK: Must pass item Key to perform Firebase Lookup, and pass .Existing
             
             if let destination = segue.destination as? ItemDetailsVC {
-                destination.itemKeyPassed = itemToPass.itemKey
+                destination.itemKeyPassed = self.item.itemKey
                 destination.itemType = .existing
             }
-            
-        case .BoxDetails:
-                if let boxDetailsVC = segue.destination as? BoxDetails{
-              
-                    boxDetailsVC.box = self.boxToPass
-                      boxDetailsVC.boxSegueType = .qr
-//                    print("perform segue to BoxDetails with boxKey = \(self.boxToPass?.boxKey)")
-
-            }
-            
-            
+        
         case .BoxFeed:
-            //            when you want to assign item to Box from iTemFeedVC -u must pass the item and set the segueID on Box feed, so it knows to come back
-            
-            let itemObject  = items[itemIndexPath!.row]
+            print("itemFeed BoxFeed")
+
+            // set segueID on Boxfeed, so it knows to come back. Pass Item to match Category
             
             if let destination = segue.destination as? BoxFeedVC {
                 destination.segueIdentifier = .ItemFeed
-                destination.itemPassed = itemObject
+                destination.itemPassed = self.item
+                destination.boxMode = .BoxAssignment
             }
             
         default:
@@ -625,6 +612,11 @@ class ItemFeedVC: UITableViewController ,UINavigationControllerDelegate,DZNEmpty
             
         } //end Switch
     }
+    
+ 
+    
+   
+ 
     
     
     var curPage = "ItemFeedVC"
@@ -635,32 +627,49 @@ class ItemFeedVC: UITableViewController ,UINavigationControllerDelegate,DZNEmpty
 extension ItemFeedVC: UISearchBarDelegate {
     // MARK: - UISearchBar Delegate
     func searchBar(_ searchBar: UISearchBar, selectedScopeButtonIndexDidChange selectedScope: Int) {
-        filterContentForSearchText(searchBar.text!, scope: searchBar.scopeButtonTitles![selectedScope])
+ 
+        filterSearchText()
+
     }
 }
 
 extension ItemFeedVC: UISearchResultsUpdating {
     // MARK: - UISearchResultsUpdating Delegate
     func updateSearchResults(for searchController: UISearchController) {
-        let searchBar = searchController.searchBar
-        let scope = searchBar.scopeButtonTitles![searchBar.selectedScopeButtonIndex]
-        filterContentForSearchText(searchController.searchBar.text!, scope: scope)
+filterSearchText()
+ 
     }
 }
 
+extension ItemFeedVC: QrDelegate{
+    func useReturnedFBKey<inventoryObject>(object: inventoryObject, completion: (Bool) -> ()) {
+        self.box = object as! Box
+        self.testMatchingCategories() { approved in
+           
+            if approved {
+                print("testMatchingCategories approved")
 
-extension ItemFeedVC {
-    
-    func createUIBarButtons() {
-        let qrBtn = UIButton(frame: CGRect(x: -6, y: 0, width: 60, height: 60))
-        qrBtn.setImage(UIImage(named: "qr_small"), for: UIControlState.normal)
-        let qrAction = "qrScan"
-        qrBtn.addTarget(self, action: Selector(qrAction), for:  UIControlEvents.touchUpInside)
-        let leftItem = UIBarButtonItem(customView: qrBtn)
-        leftItem.tintColor = UIColor.white
-        self.navigationItem.leftBarButtonItem = leftItem
+                self.assignBox()
+            }
+            
+            print("finished the assignedbox completion handler")
+        }
+        completion(true)
     }
+
 }
+//extension ItemFeedVC {
+//    
+//    func createUIBarButtons() {
+//        let qrBtn = UIButton(frame: CGRect(x: -6, y: 0, width: 60, height: 60))
+//        qrBtn.setImage(UIImage(named: "qr_small"), for: UIControlState.normal)
+//        let qrAction = "qrScan"
+//        qrBtn.addTarget(self, action: Selector(qrAction), for:  UIControlEvents.touchUpInside)
+//        let leftItem = UIBarButtonItem(customView: qrBtn)
+//        leftItem.tintColor = UIColor.white
+//        self.navigationItem.leftBarButtonItem = leftItem
+//    }
+//}
 
 
 

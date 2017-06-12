@@ -15,14 +15,74 @@ let kErrorTitle = "Connection error"
 let kNoticeTitle = "Notice"
 let kWarningTitle = "Warning"
 let kInfoTitle = "Info"
-let kSubtitle = "You've just displayed this awesome Pop Up View"
+let kSubtitle = "This cannot be undone."
 
 let kDefaultAnimationDuration = 2.0
 
 
-class PlayingAroundViewController: UIViewController {
- 
+class PlayingAroundViewController:  UIViewController, UITableViewDataSource, UITableViewDelegate {
     
+    @IBOutlet var tableView:UITableView?
+    var hidden:[Bool] = [true, true]
+    
+    func numberOfSections(in tableView: UITableView) -> Int {
+        return 2
+    }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        if hidden[section] {
+            return 0
+        } else {
+            return 3
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "LabelCell", for: indexPath)
+        cell.textLabel?.text = "A row!"
+        return cell
+    }
+    
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return 30
+}
+
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        let label = UILabel()
+        label.textAlignment = .left
+        label.text = "I'm a test label"
+        label.tag = section
+        
+        let tap = UITapGestureRecognizer(target: self, action: #selector(PlayingAroundViewController.tapFunction))
+        label.isUserInteractionEnabled = true
+        label.addGestureRecognizer(tap)
+        
+        return label
+}
+
+    func tapFunction(sender:UITapGestureRecognizer) {
+        let section = sender.view!.tag
+        let indexPaths = (0..<3).map { i in return IndexPath(item: i, section: section)  }
+        
+        hidden[section] = !hidden[section]
+        
+        tableView?.beginUpdates()
+        if hidden[section] {
+            tableView?.deleteRows(at: indexPaths, with: .fade)
+        } else {
+            tableView?.insertRows(at: indexPaths, with: .fade)
+        }
+        tableView?.endUpdates()
+}
+
+
+
+
+
+
+}
+
+    /*
             @IBOutlet weak var label: UILabel!
             
             var counter = 0
@@ -35,10 +95,7 @@ class PlayingAroundViewController: UIViewController {
                 timer.fire()
             }
             
-            override func didReceiveMemoryWarning() {
-                super.didReceiveMemoryWarning()
-                // Dispose of any resources that can be recreated.
-            }
+    
             
             func animate() {
                 UIView.transition(with: label,
@@ -55,7 +112,7 @@ class PlayingAroundViewController: UIViewController {
 //            getColor()
             // Do any additional setup after loading the view, typically from a nib.
 
-/*
+
         override func didReceiveMemoryWarning() {
             super.didReceiveMemoryWarning()
             // Dispose of any resources that can be recreated.
